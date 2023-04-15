@@ -28,7 +28,6 @@ Results works with records, in order to create custom errors you just need to de
 `ErrorResult` attribute: (You can name your records whatever you want but the Error suffix is recommended as well as making them sealed)
 
 ```csharp
-```csharp
 [ErrorResult]
 public sealed partial record OperationNotSupportedError;
 ```
@@ -82,7 +81,7 @@ IResult<string> stringResult = result.Map(() => "Hello World");
 
 // You can also map tasks
 Task<IResult<int>> intResult = Task.FromResult(Result.Success(1));
-TasK<IResult<string>> stringResult = intResult.Map(x => x.ToString());
+Task<IResult<string>> stringResult = intResult.Map(x => x.ToString());
 
 // Or return tasks
 IResult<int> intResult = Result.Success(data: 1);

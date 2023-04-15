@@ -4,10 +4,42 @@
     <!-- Source generator projects needs to target the netstandard2.0 -->
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- We want to include the build output because many of the utilities of the library are part of the assembly -->
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+
+    <!-- Automatically generate the package on build -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Nuget package properties -->
+    <PackageId>WTorricos.Results</PackageId>
+    <PackageProjectUrl>https://github.com/wtorricos/Results</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/wtorricos/Results</RepositoryUrl>
+    <Authors>Walter Torricos; wtorricos</Authors>
+    <Company>com.torricostec</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Library that allows you to write error tolerant code that can be composed.</Description>
+    <Summary>A simple package to implement the Result pattern based on source generators and functional programming.</Summary>
+    <PackageTags>result pattern aspnetcore .net</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <!-- TODO: Add <PackageIcon>icon.png</PackageIcon>-->
+
+    <!-- Properties that need to be updated on every release -->
+    <Version>1.0.0</Version>
+    <PackageReleaseNotes>Version 1</PackageReleaseNotes>
   </PropertyGroup>
+
+  <!-- https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md#package-a-generator-as-a-nuget-package -->
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
@@ -18,6 +50,10 @@
 
     <!-- Direct reference to Microsoft.CodeAnalysis.Common to fix version conflict with Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing 1.1.1 -->
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Readme.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
