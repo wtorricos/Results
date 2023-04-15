@@ -1,4 +1,4 @@
-﻿namespace Results.UnitTests;
+namespace Results.UnitTests;
 
 public sealed class ResultExtensionsMapTest
 {
@@ -23,7 +23,7 @@ public sealed class ResultExtensionsMapTest
     [Test(Description = "Should map the error on ErrorResult<T>")]
     public void MapErrorT()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Message");
+        IResult<int> sut = TestResultError<int>.Create(message: "Message");
 
         IResult<string> actual = sut.Map(i => i.ToString(CultureInfo.InvariantCulture));
 
@@ -62,7 +62,7 @@ public sealed class ResultExtensionsMapTest
     [Test(Description = "Should map the error on ErrorResult")]
     public void MapError()
     {
-        IResult sut = Result.Error<TestResultError>(message: "Message");
+        IResult sut = TestResultError.Create(message: "Message");
 
         IResult<int> actual = sut.Map(() => 1);
 
@@ -85,9 +85,9 @@ public sealed class ResultExtensionsMapTest
     {
         IResult<int> sut = Result.Success(data: 1);
 
-        IResult<string> actual = await sut
-            .Map(i => Task.FromResult(i.ToString(CultureInfo.InvariantCulture)))
-            .ConfigureAwait(continueOnCapturedContext: false);
+        Task<IResult<string>> taskActual = sut.Map(i => Task.FromResult(i.ToString(CultureInfo.InvariantCulture)));
+
+        IResult<string> actual = await taskActual.ConfigureAwait(continueOnCapturedContext: false);
 
         switch (actual)
         {
@@ -103,7 +103,7 @@ public sealed class ResultExtensionsMapTest
     [Test(Description = "Should map the error on ErrorResult<T> with async lambda")]
     public async Task MapErrorTAsync()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Message");
+        IResult<int> sut = TestResultError<int>.Create(message: "Message");
 
         IResult<string> actual = await sut
             .Map(i => Task.FromResult(i.ToString(CultureInfo.InvariantCulture)))
@@ -146,7 +146,7 @@ public sealed class ResultExtensionsMapTest
     [Test(Description = "Should map the error on Task<ErrorResult<T>>")]
     public async Task MapErrorTaskT()
     {
-        Task<IResult<int>> sut = Task.FromResult(Result.Error<TestResultError<int>, int>(message: "Message"));
+        Task<IResult<int>> sut = Task.FromResult(TestResultError<int>.Create(message: "Message"));
 
         IResult<string> actual = await sut
             .Map(i => i.ToString(CultureInfo.InvariantCulture))

@@ -18,7 +18,7 @@ public sealed class ResultExtensionsActionTest
     [Test(Description = "Action should execute error lambda on ErrorResult<T>")]
     public void ActionErrorT()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Error");
+        IResult<int> sut = TestResultError<int>.Create(message: "Error");
 
         string stringResult = string.Empty;
         sut.Action(
@@ -31,7 +31,7 @@ public sealed class ResultExtensionsActionTest
     [Test(Description = "Action should not do anything with no error handler on ErrorResult<T>")]
     public void ActionErrorTDefault()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Error");
+        IResult<int> sut = TestResultError<int>.Create(message: "Error");
 
         string stringResult = string.Empty;
         sut.Action(
@@ -58,7 +58,7 @@ public sealed class ResultExtensionsActionTest
     [Test(Description = "Action should execute error lambda on Task<ErrorResult<T>>")]
     public async Task ActionErrorTaskT()
     {
-        Task<IResult<int>> sut = Task.FromResult(Result.Error<TestResultError<int>, int>(message: "Error"));
+        Task<IResult<int>> sut = Task.FromResult(TestResultError<int>.Create(message: "Error"));
 
         string stringResult = string.Empty;
         await sut
@@ -73,7 +73,7 @@ public sealed class ResultExtensionsActionTest
     [Test(Description = "Action should not do anything with no error handler on Task<ErrorResult<T>>")]
     public async Task ActionErrorTaskTDefault()
     {
-        Task<IResult<int>> sut = Task.FromResult(Result.Error<TestResultError<int>, int>(message: "Error"));
+        Task<IResult<int>> sut = Task.FromResult(TestResultError<int>.Create(message: "Error"));
 
         string stringResult = string.Empty;
         await sut

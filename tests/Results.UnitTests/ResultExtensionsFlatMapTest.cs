@@ -1,4 +1,4 @@
-﻿namespace Results.UnitTests;
+namespace Results.UnitTests;
 
 public sealed class ResultExtensionsFlatMapTest
 {
@@ -23,17 +23,17 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten ErrorResult to Result")]
     public void FlatMapError()
     {
-        IResult sut = new TestResultError("Message");
+        IResult sut = TestResultError.Create(message: "Message");
 
         IResult actual = sut.FlatMap(Result.Success);
 
         switch (actual)
         {
             case TestResultError err:
-                err.Message.Should().Be("Message");
+                err.Message.Should().Be(expected: "Message");
                 break;
             default:
-                Assert.Fail("Should be error");
+                Assert.Fail(message: "Should be error");
                 break;
         }
     }
@@ -43,12 +43,12 @@ public sealed class ResultExtensionsFlatMapTest
     {
         IResult sut = Result.Success();
 
-        IResult actual = sut.FlatMap(() => Result.Success(1));
+        IResult actual = sut.FlatMap(() => Result.Success(data: 1));
 
         switch (actual)
         {
             case SuccessResult<int> successResult:
-                _ = successResult.Data.Should().Be(1);
+                _ = successResult.Data.Should().Be(expected: 1);
                 break;
             case IErrorResult err:
                 Assert.Fail(err.GetDisplayMessage());
@@ -59,17 +59,17 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten ErrorResult to Result<T>")]
     public void FlatMapErrorResultToResultT()
     {
-        IResult sut = new TestResultError("Message");
+        IResult sut = TestResultError.Create(message: "Message");
 
-        IResult<int> actual = sut.FlatMap(() => Result.Success(1));
+        IResult<int> actual = sut.FlatMap(() => Result.Success(data: 1));
 
         switch (actual)
         {
             case IErrorResult err:
-                err.Message.Should().Be("Message");
+                err.Message.Should().Be(expected: "Message");
                 break;
             default:
-                Assert.Fail("Should be an error");
+                Assert.Fail(message: "Should be an error");
                 break;
         }
     }
@@ -95,7 +95,7 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten an ErrorResult<T> to Result<T>")]
     public void FlatMapErrorResultTToResultT()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Message");
+        IResult<int> sut = TestResultError<int>.Create(message: "Message");
 
         IResult<string> actual = sut.FlatMap(i => Result.Success(i.ToString(CultureInfo.InvariantCulture)));
 
@@ -136,7 +136,7 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten ErrorResult<T> with async lambda")]
     public async Task FlatMapErrorResultTAsync()
     {
-        IResult<int> sut = Result.Error<TestResultError<int>, int>(message: "Message");
+        IResult<int> sut = TestResultError<int>.Create(message: "Message");
 
         IResult<string> actual = await sut
             .FlatMap(i => Task.FromResult(Result.Success(i.ToString(CultureInfo.InvariantCulture))))
@@ -159,7 +159,7 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten Task<Result<T>> with async lambda")]
     public async Task FlatMapTaskResultTAsync()
     {
-        Task<IResult<int>> sut = Task.FromResult(Result.Success(1));
+        Task<IResult<int>> sut = Task.FromResult(Result.Success(data: 1));
 
         IResult<string> actual = await sut
             .FlatMap(i => Task.FromResult(Result.Success(i.ToString(CultureInfo.InvariantCulture))))
@@ -168,7 +168,7 @@ public sealed class ResultExtensionsFlatMapTest
         switch (actual)
         {
             case SuccessResult<string> success:
-                success.Data.Should().Be("1");
+                success.Data.Should().Be(expected: "1");
                 break;
             default:
                 Assert.Fail(message: "Should be an error of type TestResultError<string>");
@@ -179,7 +179,7 @@ public sealed class ResultExtensionsFlatMapTest
     [Test(Description = "Should flatten Task<ErrorResult<T>> with async lambda")]
     public async Task FlatMapTaskErrorResultTAsync()
     {
-        Task<IResult<int>> sut = Task.FromResult(Result.Error<TestResultError<int>, int>("Message"));
+        Task<IResult<int>> sut = Task.FromResult(TestResultError<int>.Create(message: "Message"));
 
         IResult<string> actual = await sut
             .FlatMap(i => Task.FromResult(Result.Success(i.ToString(CultureInfo.InvariantCulture))))

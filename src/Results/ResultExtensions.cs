@@ -125,33 +125,4 @@ public static class ResultExtensions
                 throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type");
         }
     }
-
-    public static T AssertSuccess<T>(this IResult<T> result) => result switch
-    {
-        SuccessResult<T> successResult => successResult.Data,
-        IErrorResult errorResult => throw new ResultAssertSuccessFailedException(errorResult),
-        _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
-    };
-
-    public static void AssertSuccess(this IResult result)
-    {
-        switch (result)
-        {
-            case SuccessResult:
-                break; // do nothing
-            case IErrorResult errorResult:
-                throw new ResultAssertSuccessFailedException(errorResult);
-            default:
-                throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type");
-        }
-    }
-}
-
-public sealed class ResultAssertSuccessFailedException : Exception
-{
-    public ResultAssertSuccessFailedException(IErrorResult errorResult)
-        : base(errorResult.Message) =>
-        ErrorResult = errorResult;
-
-    public IErrorResult ErrorResult { get; }
 }

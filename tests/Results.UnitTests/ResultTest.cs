@@ -1,11 +1,11 @@
-﻿namespace Results.UnitTests;
+namespace Results.UnitTests;
 
 public sealed class ResultTest
 {
     [Test(Description = "Should implement ToResult")]
     public void ErrorResultToResult()
     {
-        IResult<int> resultT = new TestResultError<int>(message: "Message");
+        IResult<int> resultT = TestResultError<int>.Create(message: "Message");
 
         IResult result = resultT.ToResult();
 
@@ -22,7 +22,7 @@ public sealed class ResultTest
     [Test(Description = "Cast Result<T> to Result")]
     public void ResultTToResult()
     {
-        IResult<int> resultT = Result.Success(1);
+        IResult<int> resultT = Result.Success(data: 1);
 
         IResult result = resultT.ToResult();
 

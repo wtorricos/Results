@@ -5,7 +5,7 @@ public sealed class ResultExtensionsCastTest
     [Test(Description = "Cast ErrorResult<T1> to ErrorResult<T2>")]
     public void CastError()
     {
-        IErrorResult<int> result = (IErrorResult<int>)Result.Error<TestResultError<int>, int>(message: "Message");
+        IErrorResult<int> result = (IErrorResult<int>)TestResultError<int>.Create(message: "Message");
 
         IResult<string> actual = result.Cast<string>();
 
@@ -23,7 +23,7 @@ public sealed class ResultExtensionsCastTest
     [Test(Description = "Cast ErrorResult<T1> to ErrorResult<T2> includes error details")]
     public void CastErrorDetails()
     {
-        IErrorResult<int> result = (IErrorResult<int>)Result.Error<TestResultError<int>, int>(
+        IErrorResult<int> result = (IErrorResult<int>)TestResultError<int>.Create(
             message: "Message",
             new List<ErrorResultDetail>
             {

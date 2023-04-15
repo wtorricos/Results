@@ -1,6 +1,4 @@
-﻿namespace Results.UnitTests;
+namespace Results.UnitTests;
 
 [ErrorResult]
-public sealed partial record TestResultError
-{
-}
+public sealed partial record TestResultError;

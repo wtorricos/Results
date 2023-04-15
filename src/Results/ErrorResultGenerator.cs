@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -89,14 +89,24 @@ namespace {namespaceName}
 {{
     public partial record {recordName} : IErrorResult
     {{
-        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             Message = message;
             Errors = errors.ToList();
         }}
 
-        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
+        }}
+
+        public static IResult Create(string message, IEnumerable<ErrorResultDetail> errors)
+        {{
+            return new {recordName}(message, errors);
+        }}
+
+        public static IResult Create(string message)
+        {{
+            return new {recordName}(message);
         }}
 
         public string Message {{ get; }}
@@ -117,20 +127,30 @@ namespace {namespaceName}
 
         public IResult<TOut> Cast<TOut>()
         {{
-            return new {recordName}<TOut>(Message, Errors);
+            return {recordName}<TOut>.Create(Message, Errors);
         }}
     }}
 
     public partial record {recordName}<T> : IErrorResult<T>
     {{
-        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             Message = message;
             Errors = errors.ToList();
         }}
 
-        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
+        }}
+
+        public static IResult<T> Create(string message, IEnumerable<ErrorResultDetail> errors)
+        {{
+            return new {recordName}<T>(message, errors);
+        }}
+
+        public static IResult<T> Create(string message)
+        {{
+            return new {recordName}<T>(message);
         }}
 
         public string Message {{ get; }}
@@ -151,12 +171,12 @@ namespace {namespaceName}
 
         public IResult<TOut> Cast<TOut>()
         {{
-            return new {recordName}<TOut>(Message, Errors);
+            return {recordName}<TOut>.Create(Message, Errors);
         }}
 
         public IResult ToResult()
         {{
-            return new {recordName}(Message, Errors);
+            return {recordName}.Create(Message, Errors);
         }}
     }}
 }}
