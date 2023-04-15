@@ -1,0 +1,25 @@
+# User-specific files
+*.user
+
+# Build results
+obj/
+bin/
+
+# IDE settings
+.vscode/
+.ionide/
+.idea/
+.vs/
+
+# Mac files
+*DS_Store
+
+# Nuke
+.nuke/temp/
+
+# Benchmark
+BenchmarkDotNet.Artifacts/
+
+# Code coverage
+coverage/
+TestResults/
