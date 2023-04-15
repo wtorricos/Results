@@ -9,7 +9,7 @@ For those of us that like the Result approach we have different options:
 - [Result](https://github.com/ardalis/Result)
 - [ErrorOr](https://github.com/amantinband/error-or)
 - [FluentResults](https://github.com/altmann/FluentResults)
-- And many more.
+- Many more
 
 They are all a great way to write error tolerant code. However, [Results](https://github.com/wtorricos/Results) brings a slightly
 different approach inspired in functional programming that intents to be light and easy to get started with.
@@ -103,8 +103,8 @@ IResult<int> intResult = Result.Success(1);
 intResult.Action(x => Console.WriteLine(x));
 ```
 
-What if I want to get out of the Result world? `IsSucess` or similar properties are intentionally not exposed in order to force
-users to other approaches that convey more information as well as motivate users to handle all cases. For example:
+What if I want to get out of the Result world? `IsSucess` or similar properties are intentionally not exposed and better more well
+suited approaches are enforced. For example:
 ```csharp
 // Using switch is the recommended approach as will indirectly motivate you to handle all cases
 IResult<int> intResult = Result.Success(1);
