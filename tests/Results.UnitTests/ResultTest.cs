@@ -2,6 +2,15 @@ namespace Results.UnitTests;
 
 public sealed class ResultTest
 {
+    [Test(Description = "Should work fine independently of how it is created")]
+    public void ErrorFactoryMethods()
+    {
+        _ = TestResultError<int>.Create(message: "Message"); // should not throw
+        _ = new TestResultError<int>(message: "Message"); // should not throw
+        _ = TestResultError.Create(message: "Message"); // should not throw
+        _ = new TestResultError(message: "Message"); // should not throw
+    }
+
     [Test(Description = "Should implement ToResult")]
     public void ErrorResultToResult()
     {

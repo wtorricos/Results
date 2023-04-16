@@ -77,13 +77,13 @@ public sealed class ErrorResultGeneratorTest
             {
                 public partial record MyError : IErrorResult
                 {
-                    MyError(string message, IEnumerable<ErrorResultDetail> errors)
+                    public MyError(string message, IEnumerable<ErrorResultDetail> errors)
                     {
                         Message = message;
                         Errors = errors.ToList();
                     }
 
-                    MyError(string message) : this(message, Array.Empty<ErrorResultDetail>())
+                    public MyError(string message) : this(message, Array.Empty<ErrorResultDetail>())
                     {
                     }
 
@@ -121,13 +121,13 @@ public sealed class ErrorResultGeneratorTest
 
                 public partial record MyError<T> : IErrorResult<T>
                 {
-                    MyError(string message, IEnumerable<ErrorResultDetail> errors)
+                    public MyError(string message, IEnumerable<ErrorResultDetail> errors)
                     {
                         Message = message;
                         Errors = errors.ToList();
                     }
 
-                    MyError(string message) : this(message, Array.Empty<ErrorResultDetail>())
+                    public MyError(string message) : this(message, Array.Empty<ErrorResultDetail>())
                     {
                     }
 

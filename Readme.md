@@ -2,6 +2,8 @@
 
 This is a different take on Result that allows you to write error tolerant code that can be composed without losing performance.
 
+Install it from [Nuget](https://www.nuget.org/packages/WTorricos.Results).
+
 ## Why?
 
 We don't have a consolidated approach for error handling in dotnet.
@@ -41,6 +43,7 @@ public IResult MyOperation(int value)
 {
     if (value == 0)
     {
+        // Public constructors are generated as well, but Factory methods are recommended.
         return OperationNotSupportedError.Create("The value cannot be 0");
     }
 
@@ -54,6 +57,7 @@ public IResult<int> MyOperationT(int value)
 {
     if (value == 0)
     {
+        // Public constructors are generated as well, but Factory methods are recommended.
         return OperationNotSupportedError<int>.Create("The value cannot be 0");
     }
 
@@ -105,7 +109,7 @@ intResult.Action(x => Console.WriteLine(x));
 What if I want to get out of the Result world? `IsSucess` or similar properties are intentionally not exposed and better more well
 suited approaches are enforced. For example:
 ```csharp
-// Using switch is the recommended approach as will indirectly motivate you to handle all cases
+// Using switch or switch expressions is the recommended approach as will indirectly motivate you to handle all cases
 IResult<int> intResult = Result.Success(1);
 switch (intResult)
 {
@@ -116,9 +120,17 @@ switch (intResult)
         Console.WriteLine(error.GetDisplayMessage());
         break;
     case IErrorResult<int> error:
-        Console.WriteLine(error..GetDisplayMessage());
+        Console.WriteLine(error.GetDisplayMessage());
         break;
 }
+
+int value = intResult switch
+{
+    SuccessResult<int> success => success.Data,
+    OperationNotSupportedError<int> error: 0, // Fallback value
+    IErrorResult<int> error => throw new InvalidOperationException(error.GetDisplayMessage()),
+    _ => throw new InvalidOperationException("Unknown error")
+};
 
 // You can also use pattern matching
 if (intResult is SuccessResult<int> success)
@@ -127,6 +139,12 @@ if (intResult is SuccessResult<int> success)
 }
 else if (intResult is IErrorResult<int> error)
 {
-    Console.WriteLine(error..GetDisplayMessage());
+    Console.WriteLine(error.GetDisplayMessage());
+}
+
+// Don't forget you have is not at your dispossal as well
+if (intResult is not SuccessResult<int>)
+{
+    Console.WriteLine("Not a success");
 }
 ```

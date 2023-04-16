@@ -89,13 +89,13 @@ namespace {namespaceName}
 {{
     public partial record {recordName} : IErrorResult
     {{
-        {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             Message = message;
             Errors = errors.ToList();
         }}
 
-        {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
         }}
 
@@ -133,13 +133,13 @@ namespace {namespaceName}
 
     public partial record {recordName}<T> : IErrorResult<T>
     {{
-        {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             Message = message;
             Errors = errors.ToList();
         }}
 
-        {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
         }}
 
