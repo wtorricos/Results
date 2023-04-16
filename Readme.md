@@ -148,3 +148,33 @@ if (intResult is not SuccessResult<int>)
     Console.WriteLine("Not a success");
 }
 ```
+
+## FluentValidation
+
+Here is a gist of an Error that plays well with the [FluentValidation](https://docs.fluentvalidation.net/en/latest/) library:
+```csharp
+[ErrorResult]
+public sealed partial record ValidationErrorResult<T>
+{
+    public ValidationErrorResult(ValidationResult validationResult)
+    {
+        // A valid validationResult means it's a dev error that needs to be fixed inmediately
+        // for that reason it's ok to throw an exception.
+        if (validationResult.IsValid)
+            throw new ValidationErrorResultException();
+
+        Message = typeof(T).Name;
+
+        List<ErrorResultDetail> errorList = new(validationResult.Errors.Count);
+        errorList.AddRange(validationResult.Errors.Select(e => new ErrorResultDetail(e.PropertyName, e.ErrorMessage)));
+        Errors = errorList;
+    }
+}
+
+public sealed class ValidationErrorResultException : Exception
+{
+    public ValidationErrorResultException() : base("ValidationErrorResult cannot be created from a sucessful validation")
+    {
+    }
+}
+```
