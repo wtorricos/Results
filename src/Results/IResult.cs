@@ -4,7 +4,7 @@ public interface IResult
 {
 }
 
-public interface IResult<T> : IResult
+public interface IResult<out T> : IResult
 {
     IResult ToResult();
 }

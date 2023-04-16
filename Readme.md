@@ -8,6 +8,7 @@ Install it from [Nuget](https://www.nuget.org/packages/WTorricos.Results).
 
 We don't have a consolidated approach for error handling in dotnet.
 For those of us that like the Result approach we have different options:
+- [Josef Ottosson implementation](https://josef.codes/my-take-on-the-result-class-in-c-sharp/)
 - [Result](https://github.com/ardalis/Result)
 - [ErrorOr](https://github.com/amantinband/error-or)
 - [FluentResults](https://github.com/altmann/FluentResults)
@@ -149,6 +150,8 @@ if (intResult is not SuccessResult<int>)
 }
 ```
 
+You can also review this [complementary post](https://medium.com/@walticotc/result-pattern-in-c-537bedda17a6) for more examples.
+
 ## FluentValidation
 
 Here is a gist of an Error that plays well with the [FluentValidation](https://docs.fluentvalidation.net/en/latest/) library:
@@ -156,10 +159,11 @@ Here is a gist of an Error that plays well with the [FluentValidation](https://d
 [ErrorResult]
 public sealed partial record ValidationErrorResult<T>
 {
+    // Add a custom constructor to create a ValidationErrorResult<T> from a FluentValidation ValidationResult
     public ValidationErrorResult(ValidationResult validationResult)
     {
-        // A valid validationResult means it's a dev error that needs to be fixed inmediately
-        // for that reason it's ok to throw an exception.
+        // A valid validationResult means it's a dev error that needs to be fixed immediately
+        // for that reason it's ok to throw an exception here.
         if (validationResult.IsValid)
             throw new ValidationErrorResultException();
 
