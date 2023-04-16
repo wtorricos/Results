@@ -89,21 +89,47 @@ namespace {namespaceName}
 {{
     public partial record {recordName} : IErrorResult
     {{
+        /// <summary>
+        /// Public constructor that takes two parameters the message and the errors.
+        /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
+        /// and IResult instead of the concrete type.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
         public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
-            Message = message;
-            Errors = errors.ToList();
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Errors = errors?.ToList() ?? throw new ArgumentNullException(nameof(errors));
         }}
 
+        /// <summary>
+        /// Public constructor that only takes a message. Error details are initialized to an empty array.
+        /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
+        /// and IResult instead of the concrete type.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
         public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
         }}
 
+        /// <summary>
+        /// This is the recommend way to create an instance of this class.
+        /// It takes two parameters the message and the errors.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
+        /// <returns>An instance of the class abstracted as an IResult.</returns>
         public static IResult Create(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             return new {recordName}(message, errors);
         }}
 
+        /// <summary>
+        /// This is the recommend way to create an instance of this class.
+        /// It only takes a message. Error details are initialized to an empty array.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <returns>An instance of the class abstracted as an IResult.</returns>
         public static IResult Create(string message)
         {{
             return new {recordName}(message);
@@ -113,6 +139,11 @@ namespace {namespaceName}
 
         public IReadOnlyCollection<ErrorResultDetail> Errors {{ get; }}
 
+        /// <summary>
+        /// Useful method to get a string representation of the error.
+        /// It concatenates the Message with the Error list.
+        /// </summary>
+        /// <returns>A string representation of the error.</returns>
         public string GetDisplayMessage()
         {{
             StringBuilder sb = new(Message);
@@ -125,6 +156,27 @@ namespace {namespaceName}
             return sb.ToString();
         }}
 
+        /// <summary>
+        /// This method is used to cast the result to a different type.
+        /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
+        /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
+        ///
+        /// For example:
+        ///     IResult<string> GetResult(int value)
+        ///     {{
+        ///         IResult<int> intResult = Result.Success(value);
+        ///
+        ///         return intResult switch
+        ///         {{
+        ///              SuccessResult<int> success => Result.Success(success.Data.ToString()),
+        ///
+        ///              // In the case of an error we need to cast it to comply with the method signature.
+        ///              IErrorResult error => error.Cast<string>(),
+        ///         }}
+        ///     }}
+        /// </summary>
+        /// <typeparam name=""TOut"">The type to cast to.</typeparam>
+        /// <returns>The same error but with a different type parameter.</returns>
         public IResult<TOut> Cast<TOut>()
         {{
             return {recordName}<TOut>.Create(Message, Errors);
@@ -133,21 +185,47 @@ namespace {namespaceName}
 
     public partial record {recordName}<T> : IErrorResult<T>
     {{
+        /// <summary>
+        /// Public constructor that takes two parameters the message and the errors.
+        /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
+        /// and IResult instead of the concrete type.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
         public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
         {{
-            Message = message;
-            Errors = errors.ToList();
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Errors = errors?.ToList() ?? throw new ArgumentNullException(nameof(errors));
         }}
 
+        /// <summary>
+        /// Public constructor that only takes a message. Error details are initialized to an empty array.
+        /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
+        /// and IResult instead of the concrete type.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
         public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
         {{
         }}
 
+        /// <summary>
+        /// This is the recommend way to create an instance of this class.
+        /// It takes two parameters the message and the errors.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
+        /// <returns>An instance of the class abstracted as an IResult.</returns>
         public static IResult<T> Create(string message, IEnumerable<ErrorResultDetail> errors)
         {{
             return new {recordName}<T>(message, errors);
         }}
 
+        /// <summary>
+        /// This is the recommend way to create an instance of this class.
+        /// It only takes a message. Error details are initialized to an empty array.
+        /// </summary>
+        /// <param name=""message"">A generic string that describes the problem.</param>
+        /// <returns>An instance of the class abstracted as an IResult.</returns>
         public static IResult<T> Create(string message)
         {{
             return new {recordName}<T>(message);
@@ -157,6 +235,11 @@ namespace {namespaceName}
 
         public IReadOnlyCollection<ErrorResultDetail> Errors {{ get; }}
 
+        /// <summary>
+        /// Useful method to get a string representation of the error.
+        /// It concatenates the Message with the Error list.
+        /// </summary>
+        /// <returns>A string representation of the error.</returns>
         public string GetDisplayMessage()
         {{
             StringBuilder sb = new(Message);
@@ -169,11 +252,36 @@ namespace {namespaceName}
             return sb.ToString();
         }}
 
+        /// <summary>
+        /// This method is used to cast the result to a different type.
+        /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
+        /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
+        ///
+        /// For example:
+        ///     IResult<string> GetResult(int value)
+        ///     {{
+        ///         IResult<int> intResult = Result.Success(value);
+        ///
+        ///         return intResult switch
+        ///         {{
+        ///              SuccessResult<int> success => Result.Success(success.Data.ToString()),
+        ///
+        ///              // In the case of an error we need to cast it to comply with the method signature.
+        ///              IErrorResult error => error.Cast<string>(),
+        ///         }}
+        ///     }}
+        /// </summary>
+        /// <typeparam name=""TOut"">The type to cast to.</typeparam>
+        /// <returns>The same error but with a different type parameter.</returns>
         public IResult<TOut> Cast<TOut>()
         {{
             return {recordName}<TOut>.Create(Message, Errors);
         }}
 
+        /// <summary>
+        /// Method that allows us to go from IResult<T> to IResult.
+        /// </summary>
+        /// <returns>An IResult.</returns>
         public IResult ToResult()
         {{
             return {recordName}.Create(Message, Errors);

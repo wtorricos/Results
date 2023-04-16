@@ -11,6 +11,23 @@ public sealed class ResultTest
         _ = new TestResultError(message: "Message"); // should not throw
     }
 
+    [Test(Description = "Should throw when arguments are invalid")]
+    public void ErrorFactoryMethodsThrowWithInvalidArguments()
+    {
+        Action getResult = () => TestResultError<int>.Create(message: null);
+        getResult.Should().Throw<ArgumentNullException>();
+
+        getResult = () =>  TestResultError<int>.Create(message: "Message", errors: null);
+        getResult.Should().Throw<ArgumentNullException>();
+
+
+        getResult = () => TestResultError.Create(message: null);
+        getResult.Should().Throw<ArgumentNullException>();
+
+        getResult = () => TestResultError.Create(message: "Message", errors: null);
+        getResult.Should().Throw<ArgumentNullException>();
+    }
+
     [Test(Description = "Should implement ToResult")]
     public void ErrorResultToResult()
     {
