@@ -47,6 +47,21 @@ public static class ResultExtensions
         }
     }
 
+    public static async Task<IResult<TOut>> Map<TIn, TOut>(this Task<IResult<TIn>> result, Func<TIn, Task<TOut>> mapper)
+    {
+        IResult<TIn> awaitedResult = await result.ConfigureAwait(continueOnCapturedContext: false);
+        switch (awaitedResult)
+        {
+            case SuccessResult<TIn> successResult:
+                TOut mappedResult = await mapper(successResult.Data);
+                return Result.Success(mappedResult);
+            case IErrorResult<TIn> errorResult:
+                return errorResult.Cast<TOut>();
+            default:
+                throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type");
+        }
+    }
+
     public static IResult FlatMap(this IResult result, Func<IResult> successFunc) =>
         result switch
         {
@@ -62,6 +77,47 @@ public static class ResultExtensions
             IErrorResult errorResult => errorResult.Cast<TOut>(),
             _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
         };
+
+    public static Task<IResult<TOut>> FlatMap<TOut>(this IResult result, Func<Task<IResult<TOut>>> mapper) =>
+        result switch
+        {
+            SuccessResult => mapper(),
+            IErrorResult err => Task.FromResult(err.Cast<TOut>()),
+            _ => throw new ArgumentOutOfRangeException(nameof (result), "Invalid result type")
+        };
+
+    public static async Task<IResult> FlatMap(this Task<IResult> taskResult, Func<IResult> successFunc)
+    {
+        IResult result = await taskResult;
+        return result switch
+        {
+            SuccessResult => successFunc(),
+            IErrorResult errorResult => errorResult,
+            _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
+        };
+    }
+
+    public static async Task<IResult<TOut>> FlatMap<TOut>(this Task<IResult> taskResult, Func<IResult<TOut>> successFunc)
+    {
+        IResult result = await taskResult;
+        return result switch
+        {
+            SuccessResult => successFunc(),
+            IErrorResult errorResult => errorResult.Cast<TOut>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
+        };
+    }
+
+    public static async Task<IResult<TOut>> FlatMap<TOut>(this Task<IResult> taskResult, Func<Task<IResult<TOut>>> mapper)
+    {
+        IResult result = await taskResult;
+        return result switch
+        {
+            SuccessResult => await mapper(),
+            IErrorResult err => err.Cast<TOut>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(result), "Invalid result type")
+        };
+    }
 
     public static IResult<TOut> FlatMap<TIn, TOut>(this IResult<TIn> result, Func<TIn, IResult<TOut>> mapper) => result switch
     {
@@ -82,6 +138,14 @@ public static class ResultExtensions
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type");
         }
+    }
+
+    public static async Task<IResult<TOut>> FlatMap<TIn, TOut>(
+        this Task<IResult<TIn>> result,
+        Func<TIn, IResult<TOut>> mapper)
+    {
+        IResult<TIn> awaitedResult = await result.ConfigureAwait(continueOnCapturedContext: false);
+        return awaitedResult.FlatMap(mapper);
     }
 
     public static async Task<IResult<TOut>> FlatMap<TIn, TOut>(
