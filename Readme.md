@@ -154,7 +154,9 @@ You can also review this [complementary post](https://medium.com/@walticotc/resu
 
 ## FluentValidation
 
-Here is a gist of an Error that plays well with the [FluentValidation](https://docs.fluentvalidation.net/en/latest/) library:
+Here is a gist of an Error that plays well with the [FluentValidation](https://docs.fluentvalidation.net/en/latest/) library.
+
+It allows you to create an Error from a FluentValidation `ValidationResult`.
 ```csharp
 [ErrorResult]
 public sealed partial record ValidationErrorResult<T>
@@ -181,4 +183,59 @@ public sealed class ValidationErrorResultException : Exception
     {
     }
 }
+```
+## MediatR
+
+Here is a gist of a Behavior that plays well with the [MediatR](https://github.com/jbogard/MediatR) library.
+
+It will catch any unhandled exception inside a request handler of type IRequestHandler<TIn, IResult> or
+IRequestHandler<TIn, IResult< TOut >> and will guaranty that it doesn't throw exceptions.
+```csharp
+// 1. We create a generic error that will be returned for unhandled exceptions
+[ErrorResult]
+public sealed partial record InternalError;
+
+// 2. We create a generic behavior that will capture unhandled exceptions (truly exceptional exceptions)
+/// <summary>
+///     By default we capture every TResponse of type IResult or IResult T inside a try-catch block
+///     so we can guaranty that they always return an IResult, event on unexpected exceptions.
+/// </summary>
+public sealed class RequestErrorHandlerBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    where TResponse : IResult
+{
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await next().ConfigureAwait(continueOnCapturedContext: false);
+        }
+#pragma warning disable CA1031 // catch a more specific exception
+        catch (Exception e)
+#pragma warning restore CA1031
+        {
+            Type responseType = typeof(TResponse);
+            Type[] genericArguments = responseType.GetGenericArguments();
+
+            // if there are no generic arguments it means TResponse is of type Result
+            if (genericArguments.Length == 0)
+                return (TResponse)InternalError.Create(e.Message);
+
+            // if there are generic arguments it means TResponse is of type Result<T>
+            Type genericErrorType = typeof(InternalError<>);
+            Type responseErrorType = genericErrorType.MakeGenericType(genericArguments);
+
+            // We use the constructor instead of the Create factory method for convenience
+            object error = Activator.CreateInstance(responseErrorType, e.Message, Array.Empty<ErrorResultDetail>())!;
+            return (TResponse)error;
+        }
+    }
+}
+
+// 3. We register the behavior in the DI container (remember that order matters when you register this behavior)
+services
+    .AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestErrorHandlerBehavior<,>));
 ```
