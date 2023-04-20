@@ -38,6 +38,42 @@ public sealed class ResultExtensionsMapTest
         }
     }
 
+    [Test(Description = "Should map on successful IResult with Func<Task<TOut>>")]
+    public async Task MapSuccessToTask()
+    {
+        IResult sut = Result.Success();
+
+        IResult<int> actual = await sut.Map(() => Task.FromResult(1));
+
+        switch (actual)
+        {
+            case SuccessResult<int> successResult:
+                _ = successResult.Data.Should().Be(expected: 1);
+                break;
+            case IErrorResult err:
+                Assert.Fail(err.GetDisplayMessage());
+                break;
+        }
+    }
+
+    [Test(Description = "Should map error IResult with Func<Task<TOut>>")]
+    public async Task MapErrorToTask()
+    {
+        IResult sut = TestResultError.Create(message: "Message");
+
+        IResult<int> actual = await sut.Map(() => Task.FromResult(1));
+
+        switch (actual)
+        {
+            case TestResultError<int> err:
+                _ = err.GetDisplayMessage().Should().Be(expected: "Message");
+                break;
+            default:
+                Assert.Fail(message: "Should be an error of type TestResultError<int>");
+                break;
+        }
+    }
+
     [Test(Description = "Should map successful IResult<T> with Func<TOut>")]
     public void MapSuccessT()
     {

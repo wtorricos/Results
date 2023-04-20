@@ -10,6 +10,14 @@ public static class ResultExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
         };
 
+    public static async Task<IResult<TOut>> Map<TOut>(this IResult result, Func<Task<TOut>> successFunc) =>
+        result switch
+        {
+            SuccessResult => Result.Success(await successFunc()),
+            IErrorResult errorResult => errorResult.Cast<TOut>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
+        };
+
     public static IResult<TOut> Map<TIn, TOut>(this IResult<TIn> result, Func<TIn, TOut> mapper) =>
         result switch
         {
@@ -66,6 +74,14 @@ public static class ResultExtensions
         result switch
         {
             SuccessResult => Result.Success(successFunc()),
+            IErrorResult errorResult => errorResult,
+            _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
+        };
+
+    public static async Task<IResult> FlatMap(this IResult result, Func<Task<IResult>> successFunc) =>
+        result switch
+        {
+            SuccessResult => Result.Success(await successFunc()),
             IErrorResult errorResult => errorResult,
             _ => throw new ArgumentOutOfRangeException(nameof(result), message: "Invalid result type")
         };

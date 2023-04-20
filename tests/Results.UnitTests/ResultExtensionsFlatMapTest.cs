@@ -38,6 +38,42 @@ public sealed class ResultExtensionsFlatMapTest
         }
     }
 
+    [Test(Description = "Should flatten success IResult to Task<IResult>")]
+    public async Task FlatMapSuccessToTask()
+    {
+        IResult sut = Result.Success();
+
+        IResult actual = await sut.FlatMap(() => Task.FromResult(Result.Success()));
+
+        switch (actual)
+        {
+            case SuccessResult<string> successResult:
+                _ = successResult.Data.Should().Be(expected: "1");
+                break;
+            case IErrorResult err:
+                Assert.Fail(err.GetDisplayMessage());
+                break;
+        }
+    }
+
+    [Test(Description = "Should flatten error IResult to Task<IResult>")]
+    public async Task FlatMapErrorToTask()
+    {
+        IResult sut = TestResultError.Create(message: "Message");
+
+        IResult actual = await sut.FlatMap(() => Task.FromResult(Result.Success()));
+
+        switch (actual)
+        {
+            case TestResultError err:
+                err.Message.Should().Be(expected: "Message");
+                break;
+            default:
+                Assert.Fail(message: "Should be error");
+                break;
+        }
+    }
+
     [Test(Description = "Should flatten success IResult to IResult<T>")]
     public void FlatMapSuccessToResultT()
     {
