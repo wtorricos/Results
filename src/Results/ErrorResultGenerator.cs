@@ -283,7 +283,7 @@ namespace {namespaceName}
         }}
 
         /// <summary>
-        /// Method that allows us to go from IResult<T> to IResult.
+        /// <![CDATA[ Method that allows us to go from IResult<T> to IResult. ]]>
         /// </summary>
         /// <returns>An IResult.</returns>
         public IResult ToResult()
