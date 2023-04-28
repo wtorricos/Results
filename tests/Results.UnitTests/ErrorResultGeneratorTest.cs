@@ -151,6 +151,7 @@ public sealed class ErrorResultGeneratorTest
                     /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
                     ///
                     /// For example:
+                    ///     <![CDATA[
                     ///     IResult<string> GetResult(int value)
                     ///     {
                     ///         IResult<int> intResult = Result.Success(value);
@@ -163,6 +164,7 @@ public sealed class ErrorResultGeneratorTest
                     ///              IErrorResult error => error.Cast<string>(),
                     ///         }
                     ///     }
+                    ///     ]]>
                     /// </summary>
                     /// <typeparam name="TOut">The type to cast to.</typeparam>
                     /// <returns>The same error but with a different type parameter.</returns>
@@ -247,6 +249,7 @@ public sealed class ErrorResultGeneratorTest
                     /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
                     ///
                     /// For example:
+                    ///     <![CDATA[
                     ///     IResult<string> GetResult(int value)
                     ///     {
                     ///         IResult<int> intResult = Result.Success(value);
@@ -259,6 +262,7 @@ public sealed class ErrorResultGeneratorTest
                     ///              IErrorResult error => error.Cast<string>(),
                     ///         }
                     ///     }
+                    ///     ]]>
                     /// </summary>
                     /// <typeparam name="TOut">The type to cast to.</typeparam>
                     /// <returns>The same error but with a different type parameter.</returns>

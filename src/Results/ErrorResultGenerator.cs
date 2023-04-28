@@ -162,6 +162,7 @@ namespace {namespaceName}
         /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
         ///
         /// For example:
+        ///     <![CDATA[
         ///     IResult<string> GetResult(int value)
         ///     {{
         ///         IResult<int> intResult = Result.Success(value);
@@ -174,6 +175,7 @@ namespace {namespaceName}
         ///              IErrorResult error => error.Cast<string>(),
         ///         }}
         ///     }}
+        ///     ]]>
         /// </summary>
         /// <typeparam name=""TOut"">The type to cast to.</typeparam>
         /// <returns>The same error but with a different type parameter.</returns>
@@ -258,6 +260,7 @@ namespace {namespaceName}
         /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
         ///
         /// For example:
+        ///     <![CDATA[
         ///     IResult<string> GetResult(int value)
         ///     {{
         ///         IResult<int> intResult = Result.Success(value);
@@ -270,6 +273,7 @@ namespace {namespaceName}
         ///              IErrorResult error => error.Cast<string>(),
         ///         }}
         ///     }}
+        ///     ]]>
         /// </summary>
         /// <typeparam name=""TOut"">The type to cast to.</typeparam>
         /// <returns>The same error but with a different type parameter.</returns>
