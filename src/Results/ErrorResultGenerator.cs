@@ -84,6 +84,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Results;
+using IResult = Results.IResult;
 
 namespace {namespaceName}
 {{

@@ -73,6 +73,7 @@ public sealed class ErrorResultGeneratorTest
             using System.Linq;
             using System.Text;
             using Results;
+            using IResult = Results.IResult;
 
             namespace MyCode
             {
