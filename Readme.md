@@ -66,6 +66,14 @@ public IResult<int> MyOperationT(int value)
 
     return Result.Success(value);
 }
+
+// You have the Cast<> method to cast errors to a specific type, for example:
+IResult<int> intResult = OperationNotSupportedError<int>.Create("Invalid value");
+IResult<string> strResult = intResult switch
+{
+    SuccessResult<int> success => success.Data.ToString(),
+    IErrorResult<int> err => err.Cast<string>(),
+}
 ```
 
 As of now there are 3 operations that are supported that allow you to compose your results:
@@ -179,7 +187,7 @@ public sealed partial record ValidationErrorResult<T>
 
 public sealed class ValidationErrorResultException : Exception
 {
-    public ValidationErrorResultException() : base("ValidationErrorResult cannot be created from a sucessful validation")
+    public ValidationErrorResultException() : base("ValidationErrorResult cannot be created from a successful validation")
     {
     }
 }
