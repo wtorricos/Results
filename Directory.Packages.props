@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Build -->
-    <PackageVersion Include="Nuke.Common" Version="8.0.0" />
+    <PackageVersion Include="Nuke.Common" Version="9.0.3" />
     <!-- Generators -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />

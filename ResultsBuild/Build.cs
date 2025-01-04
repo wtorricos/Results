@@ -55,6 +55,8 @@ sealed class Build : NukeBuild
         .Executes(() => DotNetTasks.DotNetBuild(_ => _
             .SetConfiguration(configuration)));
 
+    // Run with: dotnet nuke cibuildandtest --configuration Release
+    // You will find the nuget package under MaybeResults/bin/Release/WTorricos.Results.x.x.x.nupkg
     Target CiBuildAndTest => _ => _
         .DependsOn(Compile)
         .Executes(() => DotNetTasks.DotNetTest(
