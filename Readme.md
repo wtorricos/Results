@@ -4,6 +4,10 @@ This is a different take on Result that allows you to write error tolerant code 
 
 Install it from [Nuget](https://www.nuget.org/packages/WTorricos.Results).
 
+## Documentation
+Version 2.0.0 contains breaking changes, review the changelog for a migration guide.
+- [Changelog](./CHANGELOG.md)
+
 ## Why?
 
 We don't have a consolidated approach for error handling in dotnet.
@@ -98,7 +102,7 @@ You can also review this [complementary post](https://medium.com/@walticotc/resu
 
 ### Linq Syntax
 
-Maybe also supports linq syntax, for example:
+Maybe also supports Linq syntax, for example:
 ```csharp
 IMaybe<int> seven = from i in MyDivision(6, 1)
                     from j in MyDivision(2, 2)

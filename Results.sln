@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		.gitignore = .gitignore
 		Readme.md = Readme.md
 		.config\dotnet-tools.json = .config\dotnet-tools.json
+		CHANGELOG.md = CHANGELOG.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResultsBuild", "ResultsBuild\ResultsBuild.csproj", "{DFC3C5A2-E3FD-40F1-8ECD-B5F2791D0F33}"
