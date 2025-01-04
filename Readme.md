@@ -30,8 +30,8 @@ to generate all the boilerplate code for you avoiding reflection. This way you g
 
 ## Getting Started
 
-Results work with records. In order to create custom errors you just need to decorate your **partial records** with the
-`[None]` attribute:
+No default errors are provided and creating your own custom errors is recommended.
+In order to create custom errors you just need to decorate your `partial records` with the `[None]` attribute:
 
 ```csharp
 // You can name your records whatever you want but the Error suffix is recommended as well as making them sealed
@@ -227,7 +227,7 @@ public sealed partial record ValidationErrorResult<T>
         // for that reason it's ok to throw an exception here.
         if (validationResult.IsValid)
         {
-            throw new ValidationErrorResultException();
+            throw new InvalidOperationException("ValidationErrorResult cannot be created from a successful validation");
         }
 
         Message = typeof(T).Name;
@@ -235,21 +235,6 @@ public sealed partial record ValidationErrorResult<T>
         List<NoneDetail> errorList = new(validationResult.Errors.Count);
         errorList.AddRange(validationResult.Errors.Select(e => new NoneDetail(e.PropertyName, e.ErrorMessage)));
         Details = errorList;
-    }
-}
-
-public sealed class ValidationErrorResultException : Exception
-{
-    public ValidationErrorResultException() : base("ValidationErrorResult cannot be created from a successful validation")
-    {
-    }
-
-    public ValidationErrorResultException(string message) : base(message)
-    {
-    }
-
-    public ValidationErrorResultException(string message, Exception innerException) : base(message, innerException)
-    {
     }
 }
 
