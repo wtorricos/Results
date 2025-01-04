@@ -1,16 +1,16 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Results;
+namespace MaybeResults;
 
 // Based on https://andrewlock.net/exploring-dotnet-6-part-9-source-generator-updates-incremental-generators/
 [Generator(LanguageNames.CSharp)]
-public sealed class ErrorResultGenerator : IIncrementalGenerator
+public sealed class NoneGenerator : IIncrementalGenerator
 {
-    const string ErrorResultAttribute = "Results.ErrorResultAttribute";
+    const string NoneAttribute = "MaybeResults.NoneAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -27,8 +27,9 @@ public sealed class ErrorResultGenerator : IIncrementalGenerator
         IncrementalValueProvider<(Compilation, ImmutableArray<RecordDeclarationSyntax>)> compilationAndClasses =
             context.CompilationProvider.Combine(recordDeclarations.Collect());
 
-        context.RegisterSourceOutput(compilationAndClasses,
-            static (spc, source) => Emit(spc, source.Item2));
+        context.RegisterSourceOutput(
+            source: compilationAndClasses,
+            static (spc, source) => Emit(context: spc, records: source.Item2));
     }
 
     //It's important for this first stage in the pipeline to be very fast and not to allocate, as it will be called a lot.
@@ -44,13 +45,15 @@ public sealed class ErrorResultGenerator : IIncrementalGenerator
 
         // loop through all the attributes on the record
         foreach (AttributeSyntax attributeSyntax in recordDeclarationSyntax.AttributeLists
-                     .SelectMany(attributeList => attributeList.Attributes))
+            .SelectMany(attributeList => attributeList.Attributes))
         {
             string? fullName = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol?.ContainingType.ToDisplayString();
 
             // Is the attribute the [LoggerMessage] attribute?
-            if (fullName == ErrorResultAttribute)
+            if (fullName == NoneAttribute)
+            {
                 return recordDeclarationSyntax;
+            }
         }
 
         // we didn't find the attribute we were looking for
@@ -60,14 +63,18 @@ public sealed class ErrorResultGenerator : IIncrementalGenerator
     static void Emit(SourceProductionContext context, ImmutableArray<RecordDeclarationSyntax> records)
     {
         if (records.IsDefaultOrEmpty)
+        {
             return; // nothing to do yet
+        }
 
         IEnumerable<RecordDeclarationSyntax> distinctRecords = records.Distinct();
 
         foreach (RecordDeclarationSyntax record in distinctRecords)
         {
             string generatedCode = ToGeneratedCode(record);
-            context.AddSource($"{record.Identifier.Text}.g.cs", SourceText.From(generatedCode, Encoding.UTF8));
+            context.AddSource(
+                hintName: $"{record.Identifier.Text}.g.cs",
+                sourceText: SourceText.From(text: generatedCode, encoding: Encoding.UTF8));
         }
     }
 
@@ -83,46 +90,46 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Results;
-using IResult = Results.IResult;
+using MaybeResults;
+using IMaybe = MaybeResults.IMaybe;
 
 namespace {namespaceName}
 {{
-    public partial record {recordName} : IErrorResult
+    public partial record {recordName} : INone
     {{
         /// <summary>
-        /// Public constructor that takes two parameters the message and the errors.
+        /// Public constructor that takes two parameters the message and the details.
         /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
-        /// and IResult instead of the concrete type.
+        /// and IMaybe instead of the concrete type.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
-        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        /// <param name=""details"">A list of error details that are composed of a Code and a Detail.</param>
+        public {recordName}(string message, IEnumerable<NoneDetail> details)
         {{
             Message = message ?? throw new ArgumentNullException(nameof(message));
-            Errors = errors?.ToList() ?? throw new ArgumentNullException(nameof(errors));
+            Details = details?.ToList() ?? throw new ArgumentNullException(nameof(details));
         }}
 
         /// <summary>
-        /// Public constructor that only takes a message. Error details are initialized to an empty array.
+        /// Public constructor that only takes a message. Details are initialized to an empty array.
         /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
-        /// and IResult instead of the concrete type.
+        /// an IMaybe instead of the concrete type.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        public {recordName}(string message) : this(message, Array.Empty<NoneDetail>())
         {{
         }}
 
         /// <summary>
         /// This is the recommend way to create an instance of this class.
-        /// It takes two parameters the message and the errors.
+        /// It takes two parameters the message and the details.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
-        /// <returns>An instance of the class abstracted as an IResult.</returns>
-        public static IResult Create(string message, IEnumerable<ErrorResultDetail> errors)
+        /// <param name=""details"">A list of details that are composed of a Code and a Description.</param>
+        /// <returns>An instance of the class abstracted as an IMaybe.</returns>
+        public static IMaybe Create(string message, IEnumerable<NoneDetail> details)
         {{
-            return new {recordName}(message, errors);
+            return new {recordName}(message, details);
         }}
 
         /// <summary>
@@ -130,97 +137,97 @@ namespace {namespaceName}
         /// It only takes a message. Error details are initialized to an empty array.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <returns>An instance of the class abstracted as an IResult.</returns>
-        public static IResult Create(string message)
+        /// <returns>An instance of the class abstracted as an IMaybe.</returns>
+        public static IMaybe Create(string message)
         {{
             return new {recordName}(message);
         }}
 
         public string Message {{ get; }}
 
-        public IReadOnlyCollection<ErrorResultDetail> Errors {{ get; }}
+        public IReadOnlyCollection<NoneDetail> Details {{ get; }}
 
         /// <summary>
         /// Useful method to get a string representation of the error.
-        /// It concatenates the Message with the Error list.
+        /// It concatenates the Message with the Details list.
         /// </summary>
-        /// <returns>A string representation of the error.</returns>
+        /// <returns>A string representation of message and the details.</returns>
         public string GetDisplayMessage()
         {{
             StringBuilder sb = new(Message);
-            foreach (ErrorResultDetail detail in Errors)
+            foreach (NoneDetail detail in Details)
             {{
                 sb = sb.Append(Environment.NewLine);
-                sb = sb.Append(detail.Code).Append(value: "": "").Append(detail.Details);
+                sb = sb.Append(detail.Code).Append(value: "": "").Append(detail.Description);
             }}
 
             return sb.ToString();
         }}
 
         /// <summary>
-        /// This method is used to cast the result to a different type.
+        /// This method is used to cast Maybe<T> to a different type.
         /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
-        /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
+        /// https://github.com/wtorricos/MaybeResults/blob/main/src/Maybe/MaybeExtensions.cs
         ///
         /// For example:
         ///     <![CDATA[
-        ///     IResult<string> GetResult(int value)
+        ///     IMaybe<string> GetMaybe(int value)
         ///     {{
-        ///         IResult<int> intResult = Result.Success(value);
+        ///         IMaybe<int> intMaybe = Maybe.Create(value);
         ///
-        ///         return intResult switch
+        ///         return intMaybe switch
         ///         {{
-        ///              SuccessResult<int> success => Result.Success(success.Data.ToString()),
+        ///              Some<int> success => Maybe.Create(success.Value.ToString()),
         ///
-        ///              // In the case of an error we need to cast it to comply with the method signature.
-        ///              IErrorResult error => error.Cast<string>(),
+        ///              // In case of none we need to cast it to comply with the method signature.
+        ///              INone error => error.Cast<string>(),
         ///         }}
         ///     }}
         ///     ]]>
         /// </summary>
         /// <typeparam name=""TOut"">The type to cast to.</typeparam>
-        /// <returns>The same error but with a different type parameter.</returns>
-        public IResult<TOut> Cast<TOut>()
+        /// <returns>The same result but with a different type parameter.</returns>
+        public IMaybe<TOut> Cast<TOut>()
         {{
-            return {recordName}<TOut>.Create(Message, Errors);
+            return {recordName}<TOut>.Create(Message, Details);
         }}
     }}
 
-    public partial record {recordName}<T> : IErrorResult<T>
+    public partial record {recordName}<T> : INone<T>
     {{
         /// <summary>
-        /// Public constructor that takes two parameters the message and the errors.
+        /// Public constructor that takes two parameters the message and the details.
         /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
-        /// and IResult instead of the concrete type.
+        /// an IMaybe instead of the concrete type.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
-        public {recordName}(string message, IEnumerable<ErrorResultDetail> errors)
+        /// <param name=""details"">A list of details that are composed of a Code and a Description.</param>
+        public {recordName}(string message, IEnumerable<NoneDetail> details)
         {{
             Message = message ?? throw new ArgumentNullException(nameof(message));
-            Errors = errors?.ToList() ?? throw new ArgumentNullException(nameof(errors));
+            Details = details?.ToList() ?? throw new ArgumentNullException(nameof(details));
         }}
 
         /// <summary>
         /// Public constructor that only takes a message. Error details are initialized to an empty array.
         /// This constructor it's provided for convenience but the equivalent factory method is recommend since it returns
-        /// and IResult instead of the concrete type.
+        /// an IMaybe instead of the concrete type.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        public {recordName}(string message) : this(message, Array.Empty<ErrorResultDetail>())
+        public {recordName}(string message) : this(message, Array.Empty<NoneDetail>())
         {{
         }}
 
         /// <summary>
         /// This is the recommend way to create an instance of this class.
-        /// It takes two parameters the message and the errors.
+        /// It takes two parameters the message and the details.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <param name=""errors"">A list of error details that are composed of a Code and a Detail.</param>
-        /// <returns>An instance of the class abstracted as an IResult.</returns>
-        public static IResult<T> Create(string message, IEnumerable<ErrorResultDetail> errors)
+        /// <param name=""details"">A list of error details that are composed of a Code and a Description.</param>
+        /// <returns>An instance of the class abstracted as an IMaybe.</returns>
+        public static IMaybe<T> Create(string message, IEnumerable<NoneDetail> details)
         {{
-            return new {recordName}<T>(message, errors);
+            return new {recordName}<T>(message, details);
         }}
 
         /// <summary>
@@ -228,28 +235,28 @@ namespace {namespaceName}
         /// It only takes a message. Error details are initialized to an empty array.
         /// </summary>
         /// <param name=""message"">A generic string that describes the problem.</param>
-        /// <returns>An instance of the class abstracted as an IResult.</returns>
-        public static IResult<T> Create(string message)
+        /// <returns>An instance of the class abstracted as an IMaybe.</returns>
+        public static IMaybe<T> Create(string message)
         {{
             return new {recordName}<T>(message);
         }}
 
         public string Message {{ get; }}
 
-        public IReadOnlyCollection<ErrorResultDetail> Errors {{ get; }}
+        public IReadOnlyCollection<NoneDetail> Details {{ get; }}
 
         /// <summary>
         /// Useful method to get a string representation of the error.
         /// It concatenates the Message with the Error list.
         /// </summary>
-        /// <returns>A string representation of the error.</returns>
+        /// <returns>A string representation of the message and the details.</returns>
         public string GetDisplayMessage()
         {{
             StringBuilder sb = new(Message);
-            foreach (ErrorResultDetail detail in Errors)
+            foreach (NoneDetail detail in Details)
             {{
                 sb = sb.Append(Environment.NewLine);
-                sb = sb.Append(detail.Code).Append(value: "": "").Append(detail.Details);
+                sb = sb.Append(detail.Code).Append(value: "": "").Append(detail.Description);
             }}
 
             return sb.ToString();
@@ -258,38 +265,38 @@ namespace {namespaceName}
         /// <summary>
         /// This method is used to cast the result to a different type.
         /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
-        /// https://github.com/wtorricos/Results/blob/main/src/Results/ResultExtensions.cs
+        /// https://github.com/wtorricos/MaybeResults/blob/main/src/Maybe/MaybeExtensions.cs
         ///
         /// For example:
         ///     <![CDATA[
-        ///     IResult<string> GetResult(int value)
+        ///     IMaybe<string> GetMaybe(int value)
         ///     {{
-        ///         IResult<int> intResult = Result.Success(value);
+        ///         IMaybe<int> intMaybe = Maybe.Create(value);
         ///
-        ///         return intResult switch
+        ///         return intMaybe switch
         ///         {{
-        ///              SuccessResult<int> success => Result.Success(success.Data.ToString()),
+        ///              Some<int> success => Maybe.Create(success.Value.ToString()),
         ///
         ///              // In the case of an error we need to cast it to comply with the method signature.
-        ///              IErrorResult error => error.Cast<string>(),
+        ///              INone error => error.Cast<string>(),
         ///         }}
         ///     }}
         ///     ]]>
         /// </summary>
         /// <typeparam name=""TOut"">The type to cast to.</typeparam>
-        /// <returns>The same error but with a different type parameter.</returns>
-        public IResult<TOut> Cast<TOut>()
+        /// <returns>The same result but with a different type parameter.</returns>
+        public IMaybe<TOut> Cast<TOut>()
         {{
-            return {recordName}<TOut>.Create(Message, Errors);
+            return {recordName}<TOut>.Create(Message, Details);
         }}
 
         /// <summary>
-        /// <![CDATA[ Method that allows us to go from IResult<T> to IResult. ]]>
+        /// <![CDATA[ Method that allows us to go from IMaybe<T> to IMaybe. ]]>
         /// </summary>
-        /// <returns>An IResult.</returns>
-        public IResult ToResult()
+        /// <returns>An IMaybe.</returns>
+        public IMaybe ToMaybe()
         {{
-            return {recordName}.Create(Message, Errors);
+            return {recordName}.Create(Message, Details);
         }}
     }}
 }}
@@ -311,9 +318,11 @@ namespace {namespaceName}
         // Keep moving "out" of nested classes etc until we get to a namespace
         // or until we run out of parents
         while (potentialNamespaceParent is not null
-               and not NamespaceDeclarationSyntax
-               and not FileScopedNamespaceDeclarationSyntax)
+            and not NamespaceDeclarationSyntax
+            and not FileScopedNamespaceDeclarationSyntax)
+        {
             potentialNamespaceParent = potentialNamespaceParent.Parent;
+        }
 
         // Build up the final namespace by looping until we no longer have a namespace declaration
         if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)
@@ -326,7 +335,9 @@ namespace {namespaceName}
             while (true)
             {
                 if (namespaceParent.Parent is not NamespaceDeclarationSyntax parent)
+                {
                     break;
+                }
 
                 // Add the outer namespace as a prefix to the final namespace
                 nameSpace = $"{namespaceParent.Name}.{nameSpace}";
