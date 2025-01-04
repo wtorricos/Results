@@ -93,13 +93,6 @@ IMaybe<int> intResult = Maybe.Create(1);
 intResult.Action(x => Console.WriteLine(x));
 ```
 
-Review the unit tests for more examples:
-- [Map](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.Test/MaybeExtensionsMapTest.cs)
-- [FlatMap](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.Test/MaybeExtensionsFlatMapTest.cs)
-- [Action](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.Test/MaybeExtensionsActionTest.cs)
-
-You can also review this [complementary post](https://medium.com/@walticotc/result-pattern-in-c-537bedda17a6) for more examples.
-
 ### Linq Syntax
 
 Maybe also supports Linq syntax, for example:
@@ -137,6 +130,14 @@ switch (result)
         break;
 }
 ```
+## More Examples
+
+Review the unit tests for more examples:
+- [Sample Usage](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.UnitTests/MaybeSample.cs)
+- [Map](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.UnitTests/MaybeExtensionsMapTest.cs)
+- [FlatMap](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.UnitTests/MaybeExtensionsFlatMapTest.cs)
+- [Action](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.UnitTests/MaybeExtensionsActionTest.cs)
+- [Linq Syntax](https://github.com/wtorricos/Results/blob/main/tests/MaybeResults.UnitTests/ExpressionSyntaxExtensionsTest.cs)
 
 ### Exit Maybe World
 

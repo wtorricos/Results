@@ -167,7 +167,7 @@ namespace {namespaceName}
         /// <summary>
         /// This method is used to cast Maybe<T> to a different type.
         /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
-        /// https://github.com/wtorricos/MaybeResults/blob/main/src/Maybe/MaybeExtensions.cs
+        /// https://github.com/wtorricos/Results/blob/main/src/MaybeResults/MaybeExtensions.cs
         ///
         /// For example:
         ///     <![CDATA[
@@ -265,7 +265,7 @@ namespace {namespaceName}
         /// <summary>
         /// This method is used to cast the result to a different type.
         /// You can find examples on how it's used in the extension methods for Map, FlatMap and Action.
-        /// https://github.com/wtorricos/MaybeResults/blob/main/src/Maybe/MaybeExtensions.cs
+        /// https://github.com/wtorricos/Results/blob/main/src/MaybeResults/MaybeExtensions.cs
         ///
         /// For example:
         ///     <![CDATA[
