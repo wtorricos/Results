@@ -30,7 +30,7 @@ to generate all the boilerplate code for you avoiding reflection. This way you g
 
 ## Getting Started
 
-No default errors are provided and creating your own custom errors is recommended.
+**No default errors are provided** and creating your own custom errors is recommended.
 In order to create custom errors you just need to decorate your `partial records` with the `[None]` attribute:
 
 ```csharp
@@ -211,6 +211,10 @@ ValidateDivision(1, 0).Should().BeOfType<DivideByZeroError<string>>();
 ValidateDivision(1, 1).Should().BeAssignableTo<Some<string>>();
 ```
 
+# Integrating it with other libraries
+
+Here are some examples of how you can use IMaybe and integrate it with other libraries.
+
 ## FluentValidation
 
 Here is a gist of an Error that plays well with the [FluentValidation](https://docs.fluentvalidation.net/en/latest/) library.
@@ -253,6 +257,7 @@ public static class AbstractValidatorExtensions
 // 3. Use it to validate your objects and get an IMaybe result
 IMaybe<MyObject> validatedObject = validator.ValidateToMaybe(MyObject);
 ```
+
 ## MediatR
 
 Here is a gist of a Behavior that plays well with the [MediatR](https://github.com/jbogard/MediatR) library.
@@ -311,4 +316,81 @@ public sealed class RequestErrorHandlerBehavior<TRequest, TResponse> : IPipeline
 // 3. We register the behavior in the DI container (remember that order matters when you register this behavior)
 services
     .AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestErrorHandlerBehavior<,>));
+```
+## Api
+Here is a gist that plays well with APIs.
+
+It allows you to map IMaybe results to Microsoft.AspNetCore.Http.IResult results.
+
+```csharp
+// define your errors, for example:
+[None]
+public sealed partial record InternalError;
+[None]
+public sealed partial record DomainError;
+[None]
+public sealed partial record ConflictError;
+[None]
+public sealed partial record NotFoundError;
+[None]
+public sealed partial record UnauthorizedError;
+[None]
+public sealed partial record ForbiddenError;
+
+// Extension method that maps to ErrorDetails
+public static class ApiExtensions
+{
+    public static Results<Ok<TResponse>, ProblemHttpResult, ValidationProblem, Conflict> ToHttpResult<TResponse>(
+        this IMaybe<TResponse> maybe) =>
+        maybe switch
+        {
+            Some<TResponse> some => TypedResults.Ok(some.Value),
+            DomainError<TResponse> error => TypedResults.Problem(
+                new()
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = error.Message
+                }),
+            ValidationErrorResult<TResponse> error => TypedResults.ValidationProblem(
+                errors: error.Details.ToDictionary(e => e.Code, e => (string[]) [e.Description]),
+                detail: error.Message),
+            UnauthorizedError<TResponse> error => TypedResults.Problem(
+                new()
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Detail = error.Message
+                }),
+            ForbiddenError<TResponse> error => TypedResults.Problem(
+                new()
+                {
+                    Status = StatusCodes.Status403Forbidden,
+                    Detail = error.Message
+                }),
+            NotFoundError<TResponse> error => TypedResults.Problem(
+                new()
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = error.Message
+                }),
+            ConflictError<TResponse> => TypedResults.Conflict(),
+            _ => TypedResults.Problem(
+                new()
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "Unexpected error occurred."
+                })
+        };
+}
+
+// Sample usage
+builder.MapPost(
+    "api/todo",
+    async (
+        [FromBody] CreateTodoRequest request,
+        [FromServices] IMediator mediator
+    ) =>
+    {
+        IMaybe<CreateCountryResponse> result = await mediator.Send(request).ConfigureAwait(false);
+        return result.ToHttpResult();
+    });
 ```
