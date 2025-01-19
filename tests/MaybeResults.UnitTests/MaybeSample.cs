@@ -1,11 +1,11 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 [None]
 public sealed partial record DivideByZeroError;
 
 public sealed class MaybeSample
 {
-    public IMaybe<int> MyDivision(int numerator, int denominator)
+    public static IMaybe<int> MyDivision(int numerator, int denominator)
     {
         if (denominator == 0)
         {

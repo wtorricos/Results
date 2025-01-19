@@ -1,4 +1,4 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 public sealed class MaybeExtensionsMapTest

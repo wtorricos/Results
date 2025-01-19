@@ -1,4 +1,4 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 // The [None] attribute will trigger the NoneGenerator which will create
 // a Custom None type that we can return in case of errors.

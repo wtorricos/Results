@@ -1,4 +1,4 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 #pragma warning disable CA2007
 public sealed class ExpressionSyntaxExtensionsTest
@@ -430,7 +430,7 @@ public sealed class ExpressionSyntaxExtensionsTest
 
         switch (result)
         {
-            case Some<int> some:
+            case Some<int>:
                 Assert.Fail("None Expected");
                 break;
             case INone err:

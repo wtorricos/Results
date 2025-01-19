@@ -172,6 +172,26 @@ public static class MaybeExtensions
         return await awaitedResult.FlatMap(mapper).ConfigureAwait(continueOnCapturedContext: false);
     }
 
+    public static async Task<IMaybe> FlatMap<TIn>(
+        this Task<IMaybe<TIn>> result,
+        Func<TIn, Task<IMaybe>> mapper) =>
+        await result.ConfigureAwait(false) switch
+        {
+            Some<TIn> some => await mapper(some.Value).ConfigureAwait(false),
+            INone none => none,
+            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
+        };
+
+    public static async Task<IMaybe> FlatMap<TIn>(
+        this Task<IMaybe<TIn>> result,
+        Func<TIn, IMaybe> mapper) =>
+        await result.ConfigureAwait(false) switch
+        {
+            Some<TIn> some => mapper(some.Value),
+            INone none => none,
+            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
+        };
+
     public static void Action<TIn>(this IMaybe<TIn> result, Action<TIn> onSuccess, Action<INone>? onError = null)
     {
         switch (result)

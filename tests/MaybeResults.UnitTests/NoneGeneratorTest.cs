@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace MaybeResults.Test;
+namespace MaybeResults.UnitTests;
 
 public sealed class NoneGeneratorTest
 {

@@ -1,4 +1,4 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 public sealed class MaybeExtensionsActionTest
 {

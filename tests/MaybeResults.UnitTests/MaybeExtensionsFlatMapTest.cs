@@ -1,4 +1,4 @@
-﻿namespace MaybeResults.Test;
+﻿namespace MaybeResults.UnitTests;
 
 public sealed class MaybeExtensionsFlatMapTest
 {
@@ -395,7 +395,7 @@ public sealed class MaybeExtensionsFlatMapTest
                 _ = success.Value.Should().Be(expected: "1");
                 break;
             default:
-                Assert.Fail(message: "Should be an error of type TestError<string>");
+                Assert.Fail(message: "Should be successful");
                 break;
         }
     }
@@ -412,6 +412,84 @@ public sealed class MaybeExtensionsFlatMapTest
         {
             case TestError<string> err:
                 _ = err.GetDisplayMessage().Should().Be(expected: "Message");
+                break;
+            default:
+                Assert.Fail(message: "Should be an error of type TestError<string>");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Should flatten success Task<IMaybe<T>> with Func<T, Task<IMaybe>>")]
+    public async Task FlatMapTSuccessTaskResultWithMaybeAsyncLambda()
+    {
+        Task<IMaybe<int>> sut = Task.FromResult(Maybe.Create(value: 1));
+
+        IMaybe actual = await sut.FlatMap(_ => Task.FromResult(Some.Instance as IMaybe));
+
+        switch (actual)
+        {
+            case Some success:
+                _ = success.Should().NotBeNull();
+                break;
+            default:
+                Assert.Fail(message: "Should be successful");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Should flatten error Task<IMaybe<T>> with Func<T, Task<IMaybe>>")]
+    public async Task FlatMapTErrorTaskResultWithMaybeAsyncLambda()
+    {
+        Task<IMaybe<int>> sut = Task.FromResult(TestError<int>.Create(message: "Message"));
+
+        IMaybe actual = await sut.FlatMap(_ => Task.FromResult(Some.Instance as IMaybe));
+
+        switch (actual)
+        {
+            case Some:
+                Assert.Fail("Should be an error of type TestError<string>");
+                break;
+            case INone err:
+                err.Message.Should().Be("Message");
+                break;
+            default:
+                Assert.Fail(message: "Should be an error of type TestError<string>");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Should flatten success Task<IMaybe<T>> with Func<T, IMaybe>")]
+    public async Task FlatMapTSuccessResultWithMaybeAsyncLambda()
+    {
+        Task<IMaybe<int>> sut = Task.FromResult(Maybe.Create(value: 1));
+
+        IMaybe actual = await sut.FlatMap(_ => Some.Instance);
+
+        switch (actual)
+        {
+            case Some success:
+                _ = success.Should().NotBeNull();
+                break;
+            default:
+                Assert.Fail(message: "Should be successful");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Should flatten error Task<IMaybe<T>> with Func<T, IMaybe>")]
+    public async Task FlatMapTErrorResultWithMaybeAsyncLambda()
+    {
+        Task<IMaybe<int>> sut = Task.FromResult(TestError<int>.Create(message: "Message"));
+
+        IMaybe actual = await sut.FlatMap(_ => Some.Instance);
+
+        switch (actual)
+        {
+            case Some:
+                Assert.Fail("Should be an error of type TestError<string>");
+                break;
+            case INone err:
+                err.Message.Should().Be("Message");
                 break;
             default:
                 Assert.Fail(message: "Should be an error of type TestError<string>");
