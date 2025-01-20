@@ -90,6 +90,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using MaybeResults;
 using IMaybe = MaybeResults.IMaybe;
 
@@ -297,6 +298,33 @@ namespace {namespaceName}
         public IMaybe ToMaybe()
         {{
             return {recordName}.Create(Message, Details);
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        /// <returns>An IMaybe<TResult>.</returns>
+        public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone)
+        {{
+            return onNone(this);
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        /// <returns>An IMaybe</returns>
+        public IMaybe Match<TResult>(Func<T, IMaybe> onSome, Func<INone, IMaybe> onNone)
+        {{
+            return onNone(this);
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        /// <returns>A Task<IMaybe<TResult>>.</returns>
+        public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone)
+        {{
+            return Task.FromResult(onNone(this));
         }}
     }}
 }}

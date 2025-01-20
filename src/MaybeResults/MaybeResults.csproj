@@ -31,7 +31,7 @@
     <!-- TODO: Add <PackageIcon>icon.png</PackageIcon>-->
 
     <!-- Properties that need to be updated on every release -->
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
     <PackageReleaseNotes>Version 2</PackageReleaseNotes>
   </PropertyGroup>
 

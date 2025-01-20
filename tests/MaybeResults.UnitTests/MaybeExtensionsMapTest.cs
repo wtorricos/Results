@@ -102,6 +102,29 @@ public sealed class MaybeExtensionsMapTest
         }
     }
 
+    [Fact(DisplayName = "Should map successful IMaybe<T> with Func<TOut> when T is invariant")]
+    public void MapSuccessInvarianceT()
+    {
+        IMaybe<IEnumerable<int>> sut = Maybe.Create(value: new List<int> { 1, 2, 3 });
+
+        IMaybe<IEnumerable<string>> actual = sut.Map(i => i.Select(n => n.ToString(CultureInfo.InvariantCulture)));
+
+        switch (actual)
+        {
+            case Some<IEnumerable<string>> successResult:
+                _ = successResult.Value.Should().Contain("1");
+                _ = successResult.Value.Should().Contain("2");
+                _ = successResult.Value.Should().Contain("3");
+                break;
+            case INone err:
+                Assert.Fail(err.GetDisplayMessage());
+                break;
+            default:
+                Assert.Fail("Invalid case");
+                break;
+        }
+    }
+
     [Fact(DisplayName = "Should map error IMaybe<T> with Func<TOut>")]
     public void MapErrorT()
     {

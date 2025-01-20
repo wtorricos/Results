@@ -5,9 +5,13 @@ public interface IMaybe;
 public interface IMaybe<out T> : IMaybe
 {
     IMaybe ToMaybe();
+
+    IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone);
+
+    Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone);
 }
 
-public abstract class Maybe
+public static class Maybe
 {
     public static IMaybe Create() => Some.Instance;
 
@@ -26,6 +30,12 @@ public sealed record Some<T>(T Value) : IMaybe<T>
     public T Value { get; } = Value;
 
     public IMaybe ToMaybe() => Some.Instance;
+
+    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone) =>
+        Maybe.Create(onSome(Value));
+
+    public async Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone) =>
+        Maybe.Create(await onSome(Value).ConfigureAwait(false));
 }
 
 public interface INone : IMaybe

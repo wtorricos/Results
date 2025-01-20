@@ -1,5 +1,5 @@
 ﻿using System.Linq.Expressions;
-using System.Text;
+
 namespace MaybeResults;
 
 // By defining Where, Select, and SelectMany operators, linq will be able to work with our custom type.
@@ -71,7 +71,7 @@ public static class ExpressionSyntaxExtensions
             : PredicateFailedError<T>.Create($"Predicate failed: '{predicate}'"));
 }
 
-public sealed record PredicateFailedError : INone
+internal sealed record PredicateFailedError : INone
 {
     public PredicateFailedError(string message, IEnumerable<NoneDetail> details)
     {
@@ -145,5 +145,15 @@ public sealed record PredicateFailedError<T> : INone<T>
     public IMaybe ToMaybe()
     {
         return PredicateFailedError.Create(Message, Details);
+    }
+
+    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone)
+    {
+        return onNone(this);
+    }
+
+    public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone)
+    {
+        return Task.FromResult(onNone(this));
     }
 }
