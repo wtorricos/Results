@@ -51,7 +51,7 @@ sealed class Build : NukeBuild
         Environment.SetEnvironmentVariable(variable: "NO_LOGO", value: "true");
 
     [Parameter(description: "Coverage test threshold, defaults to 85%")]
-    double CoverageThreshold { get; set; } = 0.85;
+    double CoverageThreshold { get; set; } = 0.95;
 
     [Solution(GenerateProjects = true)]
     Solution Solution { get; set; } = null!;
@@ -61,7 +61,13 @@ sealed class Build : NukeBuild
     Target CleanGenerated => _ => _
         .Executes(() =>
         {
-            CoverageDirectory.CreateOrCleanDirectory();
+            RootDirectory
+                .GlobDirectories(
+                    "**/TestResults",
+                    "**/coverage",
+                    "**/BenchmarkDotNet.Artifacts")
+                .ToList()
+                .ForEach(dir => dir.DeleteDirectory());
         });
 
     Target Clean => _ => _
@@ -78,7 +84,7 @@ sealed class Build : NukeBuild
             .SetConfiguration(configuration)));
 
     Target Test => target => target
-        .DependsOn(CleanGenerated)
+        .DependsOn(CleanGenerated, Compile)
         .ProceedAfterFailure()
         .Executes(
             () =>
@@ -90,9 +96,8 @@ sealed class Build : NukeBuild
                         .EnableNoRestore()
                         .SetProjectFile(Solution)
                         .SetConfiguration(configuration)
-                        .EnableCollectCoverage()
                         .SetDataCollector("XPlat Code Coverage")
-                        .SetSettingsFile($"{Solution.ResultsBuild.Directory / "CodeCoverage.runsettings"}"));
+                        .AddProperty("ExcludeByAttribute", "ExcludeFromCodeCoverageAttribute"));
             });
 
     Target TestCoverage => target => target

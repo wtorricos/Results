@@ -171,4 +171,15 @@ public sealed class MaybeTest
                 break;
         }
     }
+
+    [Fact(DisplayName = "Match overloads from IMaybe")]
+    public async Task SomeMatchOverloads()
+    {
+        IMaybe<int> resultT = Maybe.Create(1);
+
+        _ = resultT.Match(() => Some.Instance as IMaybe).Should().BeAssignableTo<Some>();
+        _ = resultT.Match(() => "1").Should().BeAssignableTo<Some<string>>();
+        _ = (await resultT.Match(() => Task.FromResult("1"))).Should().BeAssignableTo<Some<string>>();
+        _ = (await resultT.Match(() => Task.FromResult(Some.Instance as IMaybe))).Should().BeAssignableTo<Some>();
+    }
 }

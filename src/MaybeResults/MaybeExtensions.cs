@@ -164,10 +164,13 @@ public static class MaybeExtensions
         awaitedResult.Action(onSuccess, onError);
     }
 
-    public static T GetValueOrThrow<T>(this IMaybe<T> maybe) => maybe switch
+    public static T GetValueOrThrow<T>(this IMaybe<T> maybe)
     {
-        Some<T> s => s.Value,
-        INone none => throw new InvalidOperationException(none.GetDisplayMessage()),
-        _ => throw new InvalidOperationException($"No value provided for {nameof(T)}")
-    };
+        if (maybe is Some<T> some)
+        {
+            return some.Value;
+        }
+
+        throw new InvalidOperationException($"Expected {nameof(IMaybe<T>)} but got {maybe.GetType().Name}");
+    }
 }

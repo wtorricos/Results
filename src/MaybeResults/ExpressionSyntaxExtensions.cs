@@ -79,6 +79,7 @@ public sealed record PredicateFailedError : INone
         Message = message ?? throw new ArgumentNullException(nameof(message));
         Details = details?.ToList() ?? throw new ArgumentNullException(nameof(details));
     }
+
     public PredicateFailedError(string message) : this(message, details: Array.Empty<NoneDetail>())
     {
     }
