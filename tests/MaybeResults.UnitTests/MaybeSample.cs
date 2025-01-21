@@ -140,4 +140,24 @@ public sealed class MaybeSample
         ValidateDivision(1, 0).Should().BeOfType<DivideByZeroError<string>>();
         ValidateDivision(1, 1).Should().BeAssignableTo<Some<string>>();
     }
+
+    [Fact(DisplayName = "Match Example")]
+    public void MatchExample()
+    {
+        IMaybe<int> some = MyDivision(5, 5);
+
+        IMaybe<string> actual = some.Match(
+            value => value.ToString(CultureInfo.InvariantCulture),
+            error => error.Cast<string>());
+
+        switch (actual)
+        {
+            case Some<string> result:
+                result.Value.Should().Be("1");
+                break;
+            default:
+                Assert.Fail("Expected 1");
+                break;
+        }
+    }
 }

@@ -183,6 +183,19 @@ if (intResult is not Some<int>)
 {
     Console.WriteLine("Not a success");
 }
+
+// IMaybe classes also expose a Match method that takes two arguments:
+// onSome which is invoked when the Maybe result is of tipe Some and
+// onNone which an Optional argument and is invoked when there is an error
+IMaybe<int> maybeInt = Maybe.Create(value: 1);
+IMaybe<string> result = maybeInt.Match(
+    value => value.ToString(CultureInfo.InvariantCulture),
+    err => Console.WriteLine(err));
+
+// Discouraged but in case you are completely sure you have a value you can
+// use GetValueOrThrow extension method
+IMaybe<int> some = Maybe.Create(1);
+int one = some.GetValueOrThrow();
 ```
 
 ### Cast

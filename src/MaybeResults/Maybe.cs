@@ -1,14 +1,25 @@
 ﻿namespace MaybeResults;
 
-public interface IMaybe;
+public interface IMaybe
+{
+    IMaybe Match(Func<IMaybe> onSome, Action<INone>? onNone = null);
+
+    IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone>? onNone = null);
+
+    Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone>? onNone = null);
+
+    Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone>? onNone = null);
+}
 
 public interface IMaybe<out T> : IMaybe
 {
     IMaybe ToMaybe();
 
-    IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone);
+    IMaybe Match(Func<T, IMaybe> onSome, Action<INone<T>>? onNone = null);
 
-    Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone);
+    IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Action<INone<T>>? onNone = null);
+
+    Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Action<INone<T>>? onNone = null);
 }
 
 public static class Maybe
@@ -23,18 +34,46 @@ public sealed record Some : IMaybe
     public static readonly Some Instance = new();
 
     Some() { }
+
+    public IMaybe Match(Func<IMaybe> onSome, Action<INone>? onNone = null) =>
+        onSome();
+
+    public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone>? onNone = null) =>
+        Maybe.Create(onSome());
+
+    public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone>? onNone = null) =>
+        onSome();
+
+    public async Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone>? onNone = null) =>
+        Maybe.Create(await onSome().ConfigureAwait(continueOnCapturedContext: false));
 }
 
 public sealed record Some<T>(T Value) : IMaybe<T>
 {
     public T Value { get; } = Value;
 
-    public IMaybe ToMaybe() => Some.Instance;
+    public IMaybe ToMaybe() =>
+        Some.Instance;
 
-    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone) =>
+    public IMaybe Match(Func<T, IMaybe> onSome, Action<INone<T>>? onNone = null) =>
+        onSome(Value);
+
+    public IMaybe Match(Func<IMaybe> onSome, Action<INone>? onNone = null) =>
+        onSome();
+
+    public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone>? onNone = null) =>
+        Maybe.Create(onSome());
+
+    public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone>? onNone = null) =>
+        onSome();
+
+    public async Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone>? onNone = null) =>
+        Maybe.Create(await onSome().ConfigureAwait(continueOnCapturedContext: false));
+
+    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Action<INone<T>>? onNone) =>
         Maybe.Create(onSome(Value));
 
-    public async Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone) =>
+    public async Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Action<INone<T>>? onNone) =>
         Maybe.Create(await onSome(Value).ConfigureAwait(false));
 }
 

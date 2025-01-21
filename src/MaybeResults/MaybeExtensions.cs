@@ -1,44 +1,27 @@
-﻿namespace MaybeResults;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace MaybeResults;
 
 public static class MaybeExtensions
 {
-    public static IMaybe<TOut> Map<TOut>(this IMaybe result, Func<TOut> successFunc)
-    {
-        return result switch
-        {
-            Some => Maybe.Create(successFunc()),
-            INone none => none.Cast<TOut>(),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
-    }
+    public static IMaybe<TOut> Map<TOut>(this IMaybe result, Func<TOut> successFunc) =>
+        result.Match(successFunc);
 
-    public static async Task<IMaybe<TOut>> Map<TOut>(this IMaybe result, Func<Task<TOut>> successFunc)
-    {
-        return result switch
-        {
-            Some => Maybe.Create(await successFunc().ConfigureAwait(continueOnCapturedContext: false)),
-            INone none => none.Cast<TOut>(),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
-    }
+    public static Task<IMaybe<TOut>> Map<TOut>(this IMaybe result, Func<Task<TOut>> successFunc) =>
+        result.Match(successFunc);
 
-    public static IMaybe<TOut> Map<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, TOut> mapper)
-    {
-        return result.Match(
+    public static IMaybe<TOut> Map<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, TOut> mapper) =>
+        result.Match(
             mapper,
             err => err.Cast<TOut>());
-    }
 
-    public static async Task<IMaybe<TOut>> Map<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, Task<TOut>> mapper)
-    {
-        return await result.Match(
+    public static async Task<IMaybe<TOut>> Map<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, Task<TOut>> mapper) =>
+        await result.Match(
             async value =>
             {
                 TOut mappedResult = await mapper(value).ConfigureAwait(continueOnCapturedContext: false);
                 return mappedResult;
             },
             err => err.Cast<TOut>());
-    }
 
     public static async Task<IMaybe<TOut>> Map<TIn, TOut>(this Task<IMaybe<TIn>> result, Func<TIn, TOut> mapper)
     {
@@ -52,107 +35,76 @@ public static class MaybeExtensions
         return await awaitedResult.Map(mapper).ConfigureAwait(continueOnCapturedContext: false);
     }
 
-    public static IMaybe<T> Flatten<T>(this IMaybe<IMaybe<T>> result)
-    {
-        return result switch
+    public static IMaybe<T> Flatten<T>(this IMaybe<IMaybe<T>> result) =>
+        result switch
         {
             Some<IMaybe<T>> some => some.Value,
             INone<IMaybe<T>> err => err.Cast<T>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(result), "Invalid result type")
+            _ => FlattenThrowArgumentOutOfRangeException<T>(
+                expected: $"{nameof(Some<IMaybe<T>>)}, {nameof(INone<IMaybe<T>>)}", result.GetType().Name)
         };
-    }
 
-    public static async Task<IMaybe<T>> Flatten<T>(this Task<IMaybe<IMaybe<T>>> result)
-    {
-        return (await result.ConfigureAwait(continueOnCapturedContext: false)).Flatten();
-    }
+    [ExcludeFromCodeCoverage]
+    static IMaybe<T> FlattenThrowArgumentOutOfRangeException<T>(string expected, string actual) =>
+        throw new ArgumentOutOfRangeException(
+            paramName: "result",
+            message:
+            $"Invalid result type, expected one of [{expected}] but got {actual})");
 
-    public static IMaybe FlatMap(this IMaybe result, Func<IMaybe> successFunc)
-    {
-        return result switch
+    public static IMaybe Flatten(this IMaybe<IMaybe> result) =>
+        result switch
         {
-            Some => successFunc(),
-            INone none => none,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
+            Some<IMaybe> some => some.Value,
+            INone<IMaybe> err => err,
+            _ => FlattenThrowArgumentOutOfRangeException(expected: $"{nameof(Some<IMaybe>)}, {nameof(INone<IMaybe>)}",
+                result.GetType().Name)
         };
-    }
 
-    public static async Task<IMaybe> FlatMap(this IMaybe result, Func<Task<IMaybe>> successFunc)
-    {
-        return result switch
-        {
-            Some => await successFunc().ConfigureAwait(continueOnCapturedContext: false),
-            INone none => none,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
-    }
+    [ExcludeFromCodeCoverage]
+    static IMaybe FlattenThrowArgumentOutOfRangeException(string expected, string actual) =>
+        throw new ArgumentOutOfRangeException(
+            paramName: "result",
+            message:
+            $"Invalid result type, expected one of [{expected}] but got {actual})");
 
-    public static IMaybe<TOut> FlatMap<TOut>(this IMaybe result, Func<IMaybe<TOut>> successFunc)
-    {
-        return result switch
-        {
-            Some => successFunc(),
-            INone none => none.Cast<TOut>(),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
-    }
+    public static async Task<IMaybe<T>> Flatten<T>(this Task<IMaybe<IMaybe<T>>> result) =>
+        (await result.ConfigureAwait(continueOnCapturedContext: false)).Flatten();
 
-    public static Task<IMaybe<TOut>> FlatMap<TOut>(this IMaybe result, Func<Task<IMaybe<TOut>>> mapper)
-    {
-        return result switch
-        {
-            Some => mapper(),
-            INone err => Task.FromResult(err.Cast<TOut>()),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
-    }
+    public static IMaybe FlatMap(this IMaybe result, Func<IMaybe> successFunc) =>
+        result.Match(successFunc);
+
+    public static async Task<IMaybe> FlatMap(this IMaybe result, Func<Task<IMaybe>> successFunc) =>
+        await result.Match(successFunc).ConfigureAwait(false);
+
+    public static IMaybe<TOut> FlatMap<TOut>(this IMaybe result, Func<IMaybe<TOut>> successFunc) =>
+        result.Match(successFunc).Flatten();
+
+    public static Task<IMaybe<TOut>> FlatMap<TOut>(this IMaybe result, Func<Task<IMaybe<TOut>>> mapper) =>
+        result.Map(mapper).Flatten();
 
     public static async Task<IMaybe> FlatMap(this Task<IMaybe> taskResult, Func<IMaybe> successFunc)
     {
         IMaybe result = await taskResult.ConfigureAwait(continueOnCapturedContext: false);
-        return result switch
-        {
-            Some => successFunc(),
-            INone none => none,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
+        return result.Match(successFunc);
     }
 
     public static async Task<IMaybe<TOut>> FlatMap<TOut>(this Task<IMaybe> taskResult, Func<IMaybe<TOut>> successFunc)
     {
         IMaybe result = await taskResult.ConfigureAwait(continueOnCapturedContext: false);
-        return result switch
-        {
-            Some => successFunc(),
-            INone none => none.Cast<TOut>(),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
+        return result.Match(successFunc).Flatten();
     }
 
     public static async Task<IMaybe<TOut>> FlatMap<TOut>(this Task<IMaybe> taskResult, Func<Task<IMaybe<TOut>>> mapper)
     {
         IMaybe result = await taskResult.ConfigureAwait(continueOnCapturedContext: false);
-        return result switch
-        {
-            Some => await mapper(),
-            INone err => err.Cast<TOut>(),
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
+        return (await result.Match(mapper).ConfigureAwait(continueOnCapturedContext: false)).Flatten();
     }
 
-    public static IMaybe<TOut> FlatMap<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, IMaybe<TOut>> mapper)
-    {
-        return result
-            .Map(mapper)
-            .Flatten();
-    }
+    public static IMaybe<TOut> FlatMap<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, IMaybe<TOut>> mapper) =>
+        result.Map(mapper).Flatten();
 
-    public static Task<IMaybe<TOut>> FlatMap<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, Task<IMaybe<TOut>>> mapper)
-    {
-        return result
-            .Map(mapper)
-            .Flatten();
-    }
+    public static Task<IMaybe<TOut>> FlatMap<TIn, TOut>(this IMaybe<TIn> result, Func<TIn, Task<IMaybe<TOut>>> mapper) =>
+        result.Map(mapper).Flatten();
 
     public static async Task<IMaybe<TOut>> FlatMap<TIn, TOut>(
         this Task<IMaybe<TIn>> result,
@@ -176,28 +128,22 @@ public static class MaybeExtensions
     {
         IMaybe<IMaybe> maybe = await (await result.ConfigureAwait(continueOnCapturedContext: false))
             .Map(mapper).ConfigureAwait(continueOnCapturedContext: false);
-        return maybe switch
-        {
-            Some<IMaybe> => Some.Instance,
-            INone none => none,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
+        return maybe.Flatten();
     }
+
+    [ExcludeFromCodeCoverage]
+    static IMaybe FlatMapThrowArgumentOutOfRangeException(string paramName, string message) =>
+        throw new ArgumentOutOfRangeException(paramName, message);
 
     public static async Task<IMaybe> FlatMap<TIn>(
         this Task<IMaybe<TIn>> result,
         Func<TIn, IMaybe> mapper)
     {
-        return (await result.ConfigureAwait(continueOnCapturedContext: false)).Map(mapper) switch
-        {
-            Some<IMaybe> => Some.Instance,
-            INone none => none,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(result), message: "Invalid result type")
-        };
+        IMaybe<TIn> maybe = await result.ConfigureAwait(continueOnCapturedContext: false);
+        return maybe.Match(mapper);
     }
 
-    public static void Action<TIn>(this IMaybe<TIn> result, Action<TIn> onSuccess, Action<INone>? onError = null)
-    {
+    public static void Action<TIn>(this IMaybe<TIn> result, Action<TIn> onSuccess, Action<INone>? onError = null) =>
         _ = result.Match(
             value =>
             {
@@ -207,9 +153,7 @@ public static class MaybeExtensions
             err =>
             {
                 onError?.Invoke(err);
-                return err.Cast<TIn>();
             });
-    }
 
     public static async Task Action<TIn>(
         this Task<IMaybe<TIn>> result,
@@ -219,4 +163,11 @@ public static class MaybeExtensions
         IMaybe<TIn> awaitedResult = await result.ConfigureAwait(continueOnCapturedContext: false);
         awaitedResult.Action(onSuccess, onError);
     }
+
+    public static T GetValueOrThrow<T>(this IMaybe<T> maybe) => maybe switch
+    {
+        Some<T> s => s.Value,
+        INone none => throw new InvalidOperationException(none.GetDisplayMessage()),
+        _ => throw new InvalidOperationException($"No value provided for {nameof(T)}")
+    };
 }

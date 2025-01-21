@@ -26,8 +26,11 @@
       "enum": [
         "CiBuildAndTest",
         "Clean",
+        "CleanGenerated",
         "Compile",
-        "Restore"
+        "Restore",
+        "Test",
+        "TestCoverage"
       ]
     },
     "Verbosity": {
@@ -108,6 +111,15 @@
             "Debug",
             "Release"
           ]
+        },
+        "CoverageThreshold": {
+          "type": "number",
+          "description": "Coverage test threshold, defaults to 85%",
+          "format": "double"
+        },
+        "Solution": {
+          "type": "string",
+          "description": "Path to a solution file that is automatically loaded"
         }
       }
     },

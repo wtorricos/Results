@@ -61,4 +61,114 @@ public sealed class MaybeTest
                 break;
         }
     }
+
+    [Fact(DisplayName = "Match IMaybe")]
+    public void MatchIMaybe()
+    {
+ #pragma warning disable CA1859
+        IMaybe resultT = Some.Instance;
+ #pragma warning restore CA1859
+
+        IMaybe result = resultT.Match(() => Some.Instance as IMaybe);
+
+        switch (result)
+        {
+            case Some some:
+                some.Should().NotBeNull();
+                break;
+            default:
+                Assert.Fail(message: "Should be Some");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Match IMaybe invokes onNone when error")]
+    public void MatchIMaybeOnNone()
+    {
+        IMaybe resultT = TestError.Create("error");
+        bool onErrorInvoked = false;
+
+        IMaybe result = resultT.Match(() => Some.Instance, err =>
+        {
+            err.Message.Should().Be("error");
+            onErrorInvoked = true;
+        });
+
+        switch (result)
+        {
+            case Some some:
+                some.Should().BeNull();
+                break;
+            case INone err:
+                onErrorInvoked.Should().BeTrue();
+                err.Message.Should().Be("error");
+                break;
+            default:
+                Assert.Fail(message: "Should be INone");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Match invokes onSomeT")]
+    public void MaybeMatchSomeT()
+    {
+        IMaybe<int> resultT = Maybe.Create(value: 1);
+
+        IMaybe<string> result = resultT.Match(value => value.ToString(CultureInfo.InvariantCulture));
+
+        switch (result)
+        {
+            case Some<string> some:
+                some.Value.Should().Be("1");
+                break;
+            default:
+                Assert.Fail(message: "Should be 1");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Match invokes onSomeT with onNone callback")]
+    public void MaybeMatchSomeTWithOnNone()
+    {
+        IMaybe<int> maybeInt = Maybe.Create(value: 1);
+
+        IMaybe<string> result = maybeInt.Match(
+            value => value.ToString(CultureInfo.InvariantCulture),
+            err => Assert.Fail("Should not invoke onNone"));
+
+        switch (result)
+        {
+            case Some<string> some:
+                some.Value.Should().Be("1");
+                break;
+            default:
+                Assert.Fail(message: "Should be 1");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Match invokes onSome")]
+    public void MaybeMatchNone()
+    {
+        IMaybe<int> resultT = TestError<int>.Create("Message");
+        bool noneInvoked = false;
+
+        IMaybe<string> result = resultT.Match(
+            value => value.ToString(CultureInfo.InvariantCulture),
+            err => noneInvoked = true);
+
+        switch (result)
+        {
+            case Some<string>:
+                Assert.Fail(message: "Should be none");
+                break;
+            case TestError<string> err:
+                noneInvoked.Should().Be(true);
+                err.Message.Should().Be("Message");
+                break;
+            default:
+                Assert.Fail(message: "Should be INone<string>");
+                break;
+        }
+    }
 }

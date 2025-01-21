@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 namespace MaybeResults;
 
 // By defining Where, Select, and SelectMany operators, linq will be able to work with our custom type.
@@ -21,28 +21,28 @@ public static class ExpressionSyntaxExtensions
         Func<TFirst, IMaybe<TSecond>> secondMaybe,
         Func<TFirst, TSecond, TResult> resultSelector) => firstMaybe.FlatMap(
         first =>
-            secondMaybe(first).Map(second => resultSelector(arg1: first, arg2: second)));
+            secondMaybe(first).Map(second => resultSelector(first, second)));
 
     public static Task<IMaybe<TResult>> SelectMany<TFirst, TSecond, TResult>(
         this Task<IMaybe<TFirst>> firstMaybe,
         Func<TFirst, Task<IMaybe<TSecond>>> secondMaybe,
         Func<TFirst, TSecond, TResult> resultSelector) => firstMaybe.FlatMap(
         first =>
-            secondMaybe(first).Map(second => resultSelector(arg1: first, arg2: second)));
+            secondMaybe(first).Map(second => resultSelector(first, second)));
 
     public static Task<IMaybe<TResult>> SelectMany<TFirst, TSecond, TResult>(
         this IMaybe<TFirst> firstMaybe,
         Func<TFirst, Task<IMaybe<TSecond>>> secondMaybe,
         Func<TFirst, TSecond, TResult> resultSelector) => firstMaybe.FlatMap(
         first =>
-            secondMaybe(first).Map(second => resultSelector(arg1: first, arg2: second)));
+            secondMaybe(first).Map(second => resultSelector(first, second)));
 
     public static Task<IMaybe<TResult>> SelectMany<TFirst, TSecond, TResult>(
         this Task<IMaybe<TFirst>> firstMaybe,
         Func<TFirst, IMaybe<TSecond>> secondMaybe,
         Func<TFirst, TSecond, TResult> resultSelector) => firstMaybe.FlatMap(
         first =>
-            secondMaybe(first).Map(second => resultSelector(arg1: first, arg2: second)));
+            secondMaybe(first).Map(second => resultSelector(first, second)));
 
     public static IMaybe<T> Where<T>(this IMaybe<T> maybe, Expression<Func<T, bool>> predicate) =>
         maybe.FlatMap(result => predicate.Compile()(result)
@@ -71,42 +71,60 @@ public static class ExpressionSyntaxExtensions
             : PredicateFailedError<T>.Create($"Predicate failed: '{predicate}'"));
 }
 
-internal sealed record PredicateFailedError : INone
+[ExcludeFromCodeCoverage]
+public sealed record PredicateFailedError : INone
 {
     public PredicateFailedError(string message, IEnumerable<NoneDetail> details)
     {
         Message = message ?? throw new ArgumentNullException(nameof(message));
         Details = details?.ToList() ?? throw new ArgumentNullException(nameof(details));
     }
-    public PredicateFailedError(string message) : this(message, Array.Empty<NoneDetail>())
+    public PredicateFailedError(string message) : this(message, details: Array.Empty<NoneDetail>())
     {
-    }
-
-    public static IMaybe Create(string message, IEnumerable<NoneDetail> details)
-    {
-        return new PredicateFailedError(message, details);
-    }
-
-    public static IMaybe Create(string message)
-    {
-        return new PredicateFailedError(message);
     }
 
     public string Message { get; }
 
     public IReadOnlyCollection<NoneDetail> Details { get; }
 
-    public string GetDisplayMessage()
+    public string GetDisplayMessage() =>
+        Message;
+
+    public IMaybe<TOut> Cast<TOut>() =>
+        PredicateFailedError<TOut>.Create(Message, Details);
+
+    public IMaybe Match(Func<IMaybe> onSome, Action<INone>? onNone = null)
     {
-        return Message;
+        onNone?.Invoke(this);
+        return this;
     }
 
-    public IMaybe<TOut> Cast<TOut>()
+    public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone>? onNone = null)
     {
-        return PredicateFailedError<TOut>.Create(Message, Details);
+        onNone?.Invoke(this);
+        return Cast<TResult>();
     }
+
+    public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone>? onNone = null)
+    {
+        onNone?.Invoke(this);
+        return Task.FromResult<IMaybe>(this);
+    }
+
+    public Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone>? onNone = null)
+    {
+        onNone?.Invoke(this);
+        return Task.FromResult(Cast<TResult>());
+    }
+
+    public static IMaybe Create(string message, IEnumerable<NoneDetail> details) =>
+        new PredicateFailedError(message, details);
+
+    public static IMaybe Create(string message) =>
+        new PredicateFailedError(message);
 }
 
+[ExcludeFromCodeCoverage]
 public sealed record PredicateFailedError<T> : INone<T>
 {
     public PredicateFailedError(string message, IEnumerable<NoneDetail> details)
@@ -114,46 +132,68 @@ public sealed record PredicateFailedError<T> : INone<T>
         Message = message ?? throw new ArgumentNullException(nameof(message));
         Details = details?.ToList() ?? throw new ArgumentNullException(nameof(details));
     }
-    public PredicateFailedError(string message) : this(message, Array.Empty<NoneDetail>())
+    public PredicateFailedError(string message) : this(message, details: Array.Empty<NoneDetail>())
     {
-    }
-
-    public static IMaybe<T> Create(string message, IEnumerable<NoneDetail> details)
-    {
-        return new PredicateFailedError<T>(message, details);
-    }
-
-    public static IMaybe<T> Create(string message)
-    {
-        return new PredicateFailedError<T>(message);
     }
 
     public string Message { get; }
 
     public IReadOnlyCollection<NoneDetail> Details { get; }
 
-    public string GetDisplayMessage()
+    public string GetDisplayMessage() =>
+        Message;
+
+    public IMaybe<TOut> Cast<TOut>() =>
+        PredicateFailedError<TOut>.Create(Message, Details);
+
+    public IMaybe ToMaybe() =>
+        PredicateFailedError.Create(Message, Details);
+
+    public IMaybe Match(Func<T, IMaybe> onSome, Action<INone<T>>? onNone = null)
     {
-        return Message;
+        onNone?.Invoke(this);
+        return this;
     }
 
-    public IMaybe<TOut> Cast<TOut>()
+    public IMaybe Match(Func<IMaybe> onSome, Action<INone>? onNone = null)
     {
-        return PredicateFailedError<TOut>.Create(Message, Details);
+        onNone?.Invoke(this);
+        return this;
     }
 
-    public IMaybe ToMaybe()
+    public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone>? onNone = null)
     {
-        return PredicateFailedError.Create(Message, Details);
+        onNone?.Invoke(this);
+        return Cast<TResult>();
     }
 
-    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone)
+    public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone>? onNone = null)
     {
-        return onNone(this);
+        onNone?.Invoke(this);
+        return Task.FromResult<IMaybe>(this);
     }
 
-    public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone)
+    public Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone>? onNone = null)
     {
-        return Task.FromResult(onNone(this));
+        onNone?.Invoke(this);
+        return Task.FromResult(Cast<TResult>());
     }
+
+    public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Action<INone<T>>? onNone = null)
+    {
+        onNone?.Invoke(this);
+        return Cast<TResult>();
+    }
+
+    public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Action<INone<T>>? onNone = null)
+    {
+        onNone?.Invoke(this);
+        return Task.FromResult(Cast<TResult>());
+    }
+
+    public static IMaybe<T> Create(string message, IEnumerable<NoneDetail> details) =>
+        new PredicateFailedError<T>(message, details);
+
+    public static IMaybe<T> Create(string message) =>
+        new PredicateFailedError<T>(message);
 }

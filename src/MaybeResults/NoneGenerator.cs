@@ -192,6 +192,54 @@ namespace {namespaceName}
         {{
             return {recordName}<TOut>.Create(Message, Details);
         }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public IMaybe Match(Func<IMaybe> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return this;
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Cast<TResult>();
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Task.FromResult<IMaybe>(this);
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Task.FromResult(Cast<TResult>());
+        }}
     }}
 
     public partial record {recordName}<T> : INone<T>
@@ -303,28 +351,85 @@ namespace {namespaceName}
         /// <summary>
         /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
         /// </summary>
-        /// <returns>An IMaybe<TResult>.</returns>
-        public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Func<INone, IMaybe<TResult>> onNone)
+        public IMaybe Match(Func<T, IMaybe> onSome, Action<INone<T>> onNone = null)
         {{
-            return onNone(this);
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return this;
         }}
 
         /// <summary>
         /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
         /// </summary>
-        /// <returns>An IMaybe</returns>
-        public IMaybe Match<TResult>(Func<T, IMaybe> onSome, Func<INone, IMaybe> onNone)
+        public IMaybe Match(Func<IMaybe> onSome, Action<INone> onNone = null)
         {{
-            return onNone(this);
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return this;
         }}
 
         /// <summary>
         /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
         /// </summary>
-        /// <returns>A Task<IMaybe<TResult>>.</returns>
-        public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Func<INone, IMaybe<TResult>> onNone)
+        public IMaybe<TResult> Match<TResult>(Func<TResult> onSome, Action<INone> onNone = null)
         {{
-            return Task.FromResult(onNone(this));
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Cast<TResult>();
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public Task<IMaybe> Match(Func<Task<IMaybe>> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Task.FromResult<IMaybe>(this);
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public Task<IMaybe<TResult>> Match<TResult>(Func<Task<TResult>> onSome, Action<INone> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Task.FromResult(Cast<TResult>());
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public IMaybe<TResult> Match<TResult>(Func<T, TResult> onSome, Action<INone<T>> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Cast<TResult>();
+        }}
+
+        /// <summary>
+        /// <![CDATA[ Executes onSome when successful and onNone when not successful. ]]>
+        /// </summary>
+        public Task<IMaybe<TResult>> Match<TResult>(Func<T, Task<TResult>> onSome, Action<INone<T>> onNone = null)
+        {{
+            if(onNone != null)
+            {{
+                onNone.Invoke(this);
+            }}
+            return Task.FromResult(Cast<TResult>());
         }}
     }}
 }}

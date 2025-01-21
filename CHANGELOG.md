@@ -5,8 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.3]
+- Minor fixes and increase code coverage.
+- Add GetValueOrThrow extension method.
+
 ## [2.0.2]
-- Added Match method to base IMaybe interface and use it in order to fix invariance issue.
+- Added Match method to base IMaybe interface.
+- Fix invariance issue that was throwing ArgumentOutOfRangeException. The issue happened when for example using Map with
+compile time Some<IEnumerable<int>> type but runtime type Some<List<int>>.
+- Flatten extension method added as supporting method for FlatMap implementation.
 
 ## [2.0.1]
 - Added two missing FlatMap Overloads.
